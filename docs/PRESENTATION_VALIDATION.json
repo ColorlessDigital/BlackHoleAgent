@@ -1,0 +1,87 @@
+{
+  "checkedAt": "2026-11-04T10:14:43.855Z",
+  "ok": true,
+  "applicationFilesUnchanged": 263,
+  "originalSourceHash": "74a715d73af0839fca4c975ae9fdc123c62c506edbed1e62414cfd1236e59add",
+  "publicSourceHash": "65acb443116e9ceb659421be4e94153b887c862e4ed8213f9b88e8dbeef4291a",
+  "markdownLocalLinksChecked": 27,
+  "fixtures": {
+    "beforeFailed": 3,
+    "afterPassed": 3,
+    "testAndPackageFilesIdentical": true
+  },
+  "browser": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "noHorizontalOverflow": true,
+      "imagesDecoded": true,
+      "consoleErrors": 0,
+      "externalRequests": 0,
+      "keyboardTabs": true
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "height": 844,
+      "noHorizontalOverflow": true,
+      "imagesDecoded": true,
+      "consoleErrors": 0,
+      "externalRequests": 0,
+      "keyboardTabs": true
+    }
+  ],
+  "controlledUiCapture": {
+    "images": 5,
+    "errors": [],
+    "liveModel": false,
+    "personalData": false,
+    "blockedExternalHosts": [
+      "fonts.googleapis.com"
+    ]
+  },
+  "privacy": {
+    "knownStoredCredentialMatches": 0,
+    "privatePathOrKeyPatternCandidates": 0,
+    "rawPrivateHistoryAdded": false
+  },
+  "added": [
+    "docs/.nojekyll",
+    "docs/DEMO.md",
+    "docs/images/architecture.svg",
+    "docs/images/CAPTURE_REPORT.json",
+    "docs/images/demo-plan.png",
+    "docs/images/demo-working.png",
+    "docs/images/overview.png",
+    "docs/images/README.md",
+    "docs/images/recovery.png",
+    "docs/images/timeline.png",
+    "docs/images/workflow-demo.gif",
+    "docs/index.html",
+    "docs/license.txt",
+    "docs/PUBLISHING.md",
+    "docs/site.js",
+    "docs/styles.css",
+    "examples/multi-file/after/check.test.cjs",
+    "examples/multi-file/after/package.json",
+    "examples/multi-file/after/src/cart.cjs",
+    "examples/multi-file/after/src/label.cjs",
+    "examples/multi-file/after/src/math.cjs",
+    "examples/multi-file/before/check.test.cjs",
+    "examples/multi-file/before/package.json",
+    "examples/multi-file/before/src/cart.cjs",
+    "examples/multi-file/before/src/label.cjs",
+    "examples/multi-file/before/src/math.cjs",
+    "examples/multi-file/README.md",
+    "README.en.md",
+    "tools/capture-docs.mjs"
+  ],
+  "changed": [
+    "README.md"
+  ],
+  "remoteUpload": false,
+  "deployment": false,
+  "windowsRebuild": false,
+  "note": "Application tests in PUBLIC_VALIDATION.json are the earlier clean-install baseline, not rerun for this documentation-only update. Captured UI is a scripted illustration, not live inference."
+}

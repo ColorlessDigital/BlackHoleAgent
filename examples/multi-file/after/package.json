@@ -1,0 +1,6 @@
+{
+  "name": "blackhole-public-demo",
+  "private": true,
+  "license": "Apache-2.0",
+  "scripts": { "test": "node --test check.test.cjs" }
+}

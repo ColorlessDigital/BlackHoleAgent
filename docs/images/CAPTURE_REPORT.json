@@ -1,0 +1,46 @@
+{
+  "source": "Unmodified BlackHole built frontend with scripted API/SSE fixtures",
+  "liveModel": false,
+  "personalData": false,
+  "pages": [
+    {
+      "name": "demo-plan",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      }
+    },
+    {
+      "name": "demo-working",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      }
+    },
+    {
+      "name": "overview",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      }
+    },
+    {
+      "name": "timeline",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      }
+    },
+    {
+      "name": "recovery",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      }
+    }
+  ],
+  "errors": [],
+  "blockedExternalHosts": [
+    "fonts.googleapis.com"
+  ]
+}

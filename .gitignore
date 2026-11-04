@@ -1,0 +1,105 @@
+# BlackHole monorepo gitignore — P0-1 Git recovery
+# Generated: 2026-09-18. Large binaries and local runtime excluded.
+
+# --- Large model storage (65GB+ externalized) ---
+.models/
+*.gguf
+*.gguf.*
+*.bin
+blackhole/models/*.gguf
+blackhole/models/*.bin
+
+# --- Release artifacts (rebuilt via electron-builder) ---
+windows/*.exe
+windows/*.zip
+windows/win-unpacked/
+linux/*.AppImage
+linux/*.deb
+linux/*.tar.gz
+linux/*.zip
+linux/linux-unpacked/
+blackhole/dist/
+blackhole/frontend/dist/
+*.vsix
+blackhole/resources/vscode/*.vsix
+dist/
+
+# --- Bundled runtimes (recreated by prepare-platform-runtime / setup-kali) ---
+node-v20.19.2-win-x64/
+node-v24.21.0-win-x64/
+blackhole/resources/node-runtime/current/
+blackhole/resources/llama.cpp/
+blackhole/resources/node-runtime/
+
+# --- Dependencies ---
+node_modules/
+blackhole/node_modules/
+blackhole/frontend/node_modules/
+vscode-blackhole/node_modules/
+.vscode-test/
+vscode-blackhole/out/
+vscode-blackhole/.vscode-test/
+
+# --- Runtime data / logs (local execution traces) ---
+blackhole/data/
+blackhole/data/*.log
+blackhole/data/agent_sessions/
+blackhole/data/autocomplete-runs/
+blackhole/data/eval-runs/
+blackhole/data/patch-transactions/
+blackhole/data/pr-checks/
+blackhole/data/proof-runs/
+blackhole/data/real-repo-reports/
+blackhole/data/web_evidence/
+blackhole/data/llama_server.log
+blackhole/electron_*.log
+blackhole/.blackhole-runtime.json
+*.log
+
+# --- Local IDE / OS ---
+.vs/
+.vscode/
+.idea/
+.DS_Store
+Thumbs.db
+*.tmp
+*.temp
+
+# --- Legacy Kali prototype binaries (source kept, 3GB ollama bundle dropped) ---
+BlackHoleKailBurn/resources/bin/
+BlackHoleKailBurn/node_modules/
+BlackHoleKailBurn/frontend/node_modules/
+BlackHoleKailBurn/frontend/dist/
+
+# --- Backups / scratch ---
+.cache/
+linux/BUILDINFO.json
+*.zip
+!blackhole/benchmarks/**/*.zip
+BlackHoleKailBurn/scratch/
+BlackHoleKailBurn/chats_history.json
+blackhole/data/chats_history.json
+
+# --- Secrets (never commit) ---
+windows/BUILDINFO.json
+windows/BlackHoleRootCA.cer
+blackhole/data/secrets.json
+blackhole/data/secrets.enc.json
+blackhole/data/.blackhole-key.bin
+blackhole/data/config.json
+**/secrets.json
+**/secrets.enc.json
+**/.blackhole-key.bin
+.env
+.env.*
+
+# Full release trees and signing material are not public source.
+windows/
+linux/
+blackhole/BlackHoleRootCA.cer
+*.pfx
+*.p12
+*.key
+
+# Live MCP configuration may contain user credentials; keep the example.
+blackhole/.blackhole/mcp.json

@@ -1,0 +1,148 @@
+{
+  "name": "blackhole",
+  "version": "1.0.0",
+  "description": "BlackHole: Standalone Desktop Autonomous Agent Application",
+  "author": "KGE7",
+  "main": "src/main/electronMain.js",
+  "type": "module",
+  "engines": {
+    "node": ">=24.0.0"
+  },
+  "scripts": {
+    "start": "electron .",
+    "dev:frontend": "npm --prefix frontend run dev",
+    "build:frontend": "npm --prefix frontend run build",
+    "prepare:runtime": "node scripts/prepare-platform-runtime.js",
+    "build:windows": "npm run build:exe",
+    "build:exe": "npm run prepare:runtime -- --platform=win32 --arch=x64 && npm run package:vscode-extension && npm run build:frontend && powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File scripts/sign-release.ps1 -PrepareCertificatesOnly && electron-builder --win && powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File scripts/sign-release.ps1",
+    "build:exe:keep": "npm run prepare:runtime -- --platform=win32 --arch=x64 && npm run package:vscode-extension && npm run build:frontend && powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File scripts/sign-release.ps1 -PrepareCertificatesOnly && electron-builder --win && powershell -NoProfile -NonInteractive -ExecutionPolicy Bypass -WindowStyle Hidden -File scripts/sign-release.ps1 -KeepDist",
+    "build:linux": "bash scripts/build-kali-release.sh",
+    "build:kali": "bash scripts/build-kali-release.sh",
+    "test": "node --test src/agent/toolParser.test.js src/agent/orchestrator.test.js src/agent/contextGuard.test.js src/agent/contextCompactor.test.js src/agent/core/stateMachine.test.js src/agent/core/actionJournal.test.js src/agent/core/phaseGuards.test.js src/agent/core/contextEngine.test.js src/agent/core/astPackaging.test.js src/agent/core/policyEngine.test.js src/config/configStore.test.js src/config/secretStore.test.js src/config/keychain.test.js src/config/workspaceConfig.test.js src/workspace/fileBroker.test.js src/workspace/terminalBroker.test.js src/web/webService.test.js src/mcp/mcpConfig.test.js src/mcp/mcpClient.test.js src/ide/autocompleteEngine.test.js src/ci/prDiffCheck.test.js src/runtime/llamaCppRuntime.test.js src/runtime/runtimeRouter.test.js src/runtime/openaiCompatRuntime.test.js src/runtime/openCodeGoRuntime.test.js src/runtime/usageTracker.test.js src/rag/worker.test.js src/server/auth.test.js src/server/routes/config.test.js src/runtime/goModelCatalog.test.js src/security/auditLog.test.js src/server/routes/files.test.js src/agent/llmRouter.test.js src/runtime/googleToolAdapter.test.js src/runtime/goAgentTools.test.js src/runtime/nativeGoTools.test.js src/web/webCancellation.test.js src/security/approvalGate.test.js src/server/routes/chatCancellation.test.js src/web/renderCancellation.test.js",
+    "check:backend": "node scripts/check-backend.js",
+    "check:workspace-rules": "node scripts/check-workspace-rules.js",
+    "release:check": "node scripts/release-check.js",
+    "release:check:kali": "node scripts/release-check.js --platform=linux --skip-extension-e2e",
+    "smoke:agent": "node scripts/agent-smoke-check.js",
+    "benchmark:agent": "node scripts/agent-benchmark.js",
+    "benchmark:autocomplete": "node scripts/autocomplete-benchmark.js",
+    "eval:agent": "node scripts/agent-e2e-eval.js",
+    "eval:real-repos": "node scripts/real-repo-eval.js",
+    "proof:quick": "node scripts/proof-pipeline.js --quick --record",
+    "proof:full": "node scripts/proof-pipeline.js --full --record --ide-e2e",
+    "proof:models": "node scripts/proof-pipeline.js --quick --record --real-models --max-models=1 --real-model-cases=3",
+    "stress:code-intelligence": "node scripts/code-intelligence-stress.js",
+    "visual:frontend": "node scripts/frontend-visual-check.js",
+    "check:vscode-extension": "node scripts/check-vscode-extension.js",
+    "install:vscode-extension": "node scripts/install-vscode-extension.js",
+    "package:vscode-extension": "node scripts/package-vscode-extension.js",
+    "test:vscode-extension": "node scripts/test-vscode-extension-e2e.js",
+    "generate:e2e-corpus": "node scripts/generate-e2e-corpus.js",
+    "check:e2e-corpus": "node scripts/check-e2e-corpus.js",
+    "check:pr-diff": "node scripts/pr-diff-check.js",
+    "check:parity": "node scripts/check-release-parity.js",
+    "test:release": "node --test scripts/release-metadata.test.js",
+    "pr:check": "node scripts/pr-check.js",
+    "mcp:server": "node src/mcp/blackholeMcpServer.js"
+  },
+  "dependencies": {
+    "cheerio": "^1.2.0",
+    "cors": "^2.8.5",
+    "eventsource-parser": "4.1.1",
+    "express": "^4.19.2",
+    "typescript": "^5.9.3"
+  },
+  "devDependencies": {
+    "electron": "44.5.1",
+    "electron-builder": "26.15.3"
+  },
+  "optionalDependencies": {
+    "playwright": "^1.40.0"
+  },
+  "build": {
+    "appId": "com.antigravity.blackhole",
+    "productName": "BlackHole",
+    "onNodeModuleFile": "build/include-runtime-files.cjs",
+    "directories": {
+      "output": "dist"
+    },
+    "files": [
+      "src/**/*",
+      "frontend/dist/**/*",
+      "package.json"
+    ],
+    "extraResources": [
+      {
+        "from": "resources/llama.cpp",
+        "to": "llama.cpp",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "models",
+        "to": "models",
+        "filter": [
+          "**/*"
+        ]
+      },
+      {
+        "from": "resources/vscode",
+        "to": "vscode",
+        "filter": [
+          "vscode-blackhole.vsix"
+        ]
+      },
+      {
+        "from": "resources/node-runtime/current",
+        "to": "node-runtime",
+        "filter": [
+          "**/*"
+        ]
+      },
+      "BlackHoleRootCA.cer"
+    ],
+    "win": {
+      "forceCodeSigning": true,
+      "signtoolOptions": {
+        "certificateSubjectName": "BlackHole Publisher",
+        "signingHashAlgorithms": [
+          "sha256"
+        ]
+      },
+      "target": [
+        "nsis",
+        "portable"
+      ]
+    },
+    "portable": {
+      "artifactName": "blackhole.exe"
+    },
+    "nsis": {
+      "oneClick": false,
+      "perMachine": true,
+      "allowToChangeInstallationDirectory": true,
+      "include": "build/installer.nsh",
+      "artifactName": "BlackHole-Setup.exe"
+    },
+    "mac": {
+      "target": [
+        "dmg",
+        "zip"
+      ],
+      "category": "public.app-category.developer-tools"
+    },
+    "linux": {
+      "target": [
+        "AppImage",
+        "deb",
+        "tar.gz",
+        "zip"
+      ],
+      "category": "Development",
+      "executableName": "blackhole",
+      "artifactName": "BlackHole-${version}-${arch}.${ext}",
+      "maintainer": "BlackHole"
+    }
+  }
+}

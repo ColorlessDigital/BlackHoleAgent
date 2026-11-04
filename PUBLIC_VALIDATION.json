@@ -1,0 +1,167 @@
+{
+  "checkedAt": "2026-11-04T09:46:58.936Z",
+  "cleanBootstrapAndNpmCi": true,
+  "checks": [
+    {
+      "name": "backend-tests",
+      "exitCode": 0,
+      "ok": true
+    },
+    {
+      "name": "frontend-tests",
+      "exitCode": 0,
+      "ok": true
+    },
+    {
+      "name": "backend-syntax",
+      "exitCode": 0,
+      "ok": true
+    },
+    {
+      "name": "workspace-rules",
+      "exitCode": 0,
+      "ok": true
+    },
+    {
+      "name": "frontend-lint",
+      "exitCode": 0,
+      "ok": true
+    },
+    {
+      "name": "frontend-build",
+      "exitCode": 0,
+      "ok": true
+    },
+    {
+      "name": "runtime-prepare",
+      "exitCode": 0,
+      "ok": true
+    },
+    {
+      "name": "extension-package",
+      "exitCode": 0,
+      "ok": true
+    },
+    {
+      "name": "release-check",
+      "exitCode": 0,
+      "ok": true
+    }
+  ],
+  "backendTests": 404,
+  "frontendTests": 10,
+  "extensionHostE2E": "skipped",
+  "liveProviderCallsDuringExport": false,
+  "windowsReleaseRebuiltDuringExport": false,
+  "privacy": {
+    "knownStoredSecretsReadable": true,
+    "exactKnownSecretMatches": 0,
+    "patternCandidates": 0,
+    "userConfigAndKeysUnchanged": true
+  },
+  "warnings": [
+    "No public evidence of cross-PC installer trust or Linux build.",
+    "No private proof freshness file is included.",
+    "npm audit findings remain; versions were deliberately not upgraded by the cleanup."
+  ],
+  "audits": [
+    {
+      "project": "blackhole",
+      "status": 1,
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 17,
+        "high": 3,
+        "critical": 1,
+        "total": 21
+      },
+      "highOrCriticalPackages": [
+        {
+          "name": "body-parser",
+          "severity": "high",
+          "locations": [
+            "node_modules/body-parser"
+          ]
+        },
+        {
+          "name": "electron",
+          "severity": "high",
+          "locations": [
+            "node_modules/electron"
+          ]
+        },
+        {
+          "name": "proxy-addr",
+          "severity": "critical",
+          "locations": [
+            "node_modules/proxy-addr"
+          ]
+        },
+        {
+          "name": "undici",
+          "severity": "high",
+          "locations": [
+            "node_modules/node-gyp/node_modules/undici",
+            "node_modules/undici"
+          ]
+        }
+      ]
+    },
+    {
+      "project": "blackhole/frontend",
+      "status": 1,
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 12,
+        "high": 0,
+        "critical": 0,
+        "total": 12
+      },
+      "highOrCriticalPackages": []
+    },
+    {
+      "project": "vscode-blackhole",
+      "status": 1,
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 5,
+        "high": 4,
+        "critical": 0,
+        "total": 9
+      },
+      "highOrCriticalPackages": [
+        {
+          "name": "@azure/identity",
+          "severity": "high",
+          "locations": [
+            "node_modules/@azure/identity"
+          ]
+        },
+        {
+          "name": "@azure/msal-node",
+          "severity": "high",
+          "locations": [
+            "node_modules/@azure/msal-node"
+          ]
+        },
+        {
+          "name": "markdown-it",
+          "severity": "high",
+          "locations": [
+            "node_modules/markdown-it"
+          ]
+        },
+        {
+          "name": "undici",
+          "severity": "high",
+          "locations": [
+            "node_modules/undici"
+          ]
+        }
+      ]
+    }
+  ]
+}

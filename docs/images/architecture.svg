@@ -1,0 +1,43 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-labelledby="title desc">
+  <title id="title">BlackHole execution architecture</title>
+  <desc id="desc">The desktop UI connects to the agent core. The core routes model calls to local llama.cpp or optional cloud gateways, executes tools through existing approval and validation, then records verification and checkpoints for recovery.</desc>
+  <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="#52665b"/></marker></defs>
+  <rect width="1280" height="640" fill="#f5f8f6"/>
+  <g font-family="Segoe UI,Arial,sans-serif" fill="#172b21">
+    <text x="48" y="57" font-size="28" font-weight="700">From a request to a verified change</text>
+    <text x="48" y="87" font-size="16" fill="#52665b">BlackHole orchestrates the workflow. The selected model supplies the inference.</text>
+    <g fill="white" stroke="#cedbd3" stroke-width="2">
+      <rect x="48" y="214" width="216" height="124" rx="8"/>
+      <rect x="324" y="192" width="264" height="168" rx="8" stroke="#087f5b"/>
+      <rect x="668" y="132" width="248" height="102" rx="8"/>
+      <rect x="964" y="132" width="268" height="102" rx="8"/>
+      <rect x="668" y="306" width="564" height="126" rx="8"/>
+      <rect x="324" y="480" width="592" height="108" rx="8" stroke="#b78117"/>
+    </g>
+    <g fill="none" stroke="#52665b" stroke-width="2" marker-end="url(#arrow)">
+      <path d="M264 276H318"/>
+      <path d="M588 250H628V183H662"/>
+      <path d="M628 183V110H1098V126"/>
+      <path d="M588 314H628V368H662"/>
+      <path d="M792 432V474"/>
+      <path d="M456 480V366" stroke="#b78117"/>
+    </g>
+    <text x="73" y="250" font-size="20" font-weight="700">Desktop UI</text>
+    <text x="73" y="279" font-size="16">Chat / files / status</text>
+    <text x="73" y="306" font-size="16">React + Electron</text>
+    <text x="350" y="232" font-size="20" font-weight="700">Agent core</text>
+    <text x="350" y="266" font-size="16">Plan → Execute → Verify</text>
+    <text x="350" y="298" font-size="16">Context + model routing</text>
+    <text x="350" y="329" font-size="16">Bounded recovery</text>
+    <text x="690" y="168" font-size="20" font-weight="700">Local inference</text>
+    <text x="690" y="203" font-size="16">llama.cpp + GGUF</text>
+    <text x="987" y="168" font-size="20" font-weight="700">Optional providers</text>
+    <text x="987" y="203" font-size="16">OpenAI-compatible / Go</text>
+    <text x="690" y="343" font-size="20" font-weight="700">Tools + existing approval / validation</text>
+    <text x="690" y="376" font-size="16">Files · terminal · web · MCP · IDE bridge</text>
+    <text x="690" y="406" font-size="15" fill="#52665b">A tool result is checked before the workflow continues.</text>
+    <text x="350" y="518" font-size="20" font-weight="700">Evidence + recovery state</text>
+    <text x="350" y="551" font-size="16">Test results · execution journal · checkpoints · context summary</text>
+    <text x="48" y="617" font-size="14" fill="#52665b">Conceptual diagram, not a claim that every task succeeds or every tool runs offline.</text>
+  </g>
+</svg>

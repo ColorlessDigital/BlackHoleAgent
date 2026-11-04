@@ -1,0 +1,17 @@
+version: 1
+workspace:
+  name: BlackHole
+  agentProfile: autonomous-coder
+  codingStandard: blackhole-default
+agent:
+  profile: autonomous-coder
+  prompts: ["prompts/system.md", "prompts/agent.md"]
+  rules: ["rules/coding-standard.md", "rules/pr-check.md"]
+prCheck:
+  enabled: true
+  rules: ["rules/coding-standard.md", "rules/pr-check.md"]
+models:
+  file: models.yaml
+mcp:
+  enabled: true
+  defaultPermission: ask

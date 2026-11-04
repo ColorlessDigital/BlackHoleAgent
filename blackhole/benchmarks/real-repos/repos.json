@@ -1,0 +1,103 @@
+{
+  "name": "BlackHole real repository fixture set",
+  "version": 1,
+  "description": "Real npm/python repositories used for indexing durability, task-type coverage, and model comparison reports.",
+  "repos": [
+    {
+      "id": "express",
+      "ecosystem": "npm",
+      "url": "https://github.com/expressjs/express.git",
+      "defaultBranch": "master",
+      "sizeClass": "medium",
+      "taskTypes": ["bugfix", "feature", "test-fix"]
+    },
+    {
+      "id": "lodash",
+      "ecosystem": "npm",
+      "url": "https://github.com/lodash/lodash.git",
+      "defaultBranch": "main",
+      "sizeClass": "medium",
+      "taskTypes": ["bugfix", "refactor", "test-fix"]
+    },
+    {
+      "id": "axios",
+      "ecosystem": "npm",
+      "url": "https://github.com/axios/axios.git",
+      "defaultBranch": "v1.x",
+      "sizeClass": "medium",
+      "taskTypes": ["bugfix", "feature", "test-fix"]
+    },
+    {
+      "id": "chalk",
+      "ecosystem": "npm",
+      "url": "https://github.com/chalk/chalk.git",
+      "defaultBranch": "main",
+      "sizeClass": "small",
+      "taskTypes": ["feature", "refactor", "test-fix"]
+    },
+    {
+      "id": "commander",
+      "ecosystem": "npm",
+      "url": "https://github.com/tj/commander.js.git",
+      "defaultBranch": "master",
+      "sizeClass": "small",
+      "taskTypes": ["bugfix", "feature", "test-fix"]
+    },
+    {
+      "id": "fastify",
+      "ecosystem": "npm",
+      "url": "https://github.com/fastify/fastify.git",
+      "defaultBranch": "main",
+      "sizeClass": "large",
+      "taskTypes": ["bugfix", "feature", "refactor", "test-fix"]
+    },
+    {
+      "id": "flask",
+      "ecosystem": "python",
+      "url": "https://github.com/pallets/flask.git",
+      "defaultBranch": "main",
+      "sizeClass": "medium",
+      "taskTypes": ["bugfix", "feature", "test-fix"]
+    },
+    {
+      "id": "requests",
+      "ecosystem": "python",
+      "url": "https://github.com/psf/requests.git",
+      "defaultBranch": "main",
+      "sizeClass": "medium",
+      "taskTypes": ["bugfix", "feature", "test-fix"]
+    },
+    {
+      "id": "click",
+      "ecosystem": "python",
+      "url": "https://github.com/pallets/click.git",
+      "defaultBranch": "main",
+      "sizeClass": "small",
+      "taskTypes": ["bugfix", "refactor", "test-fix"]
+    },
+    {
+      "id": "pytest",
+      "ecosystem": "python",
+      "url": "https://github.com/pytest-dev/pytest.git",
+      "defaultBranch": "main",
+      "sizeClass": "large",
+      "taskTypes": ["bugfix", "feature", "refactor", "test-fix"]
+    },
+    {
+      "id": "httpx",
+      "ecosystem": "python",
+      "url": "https://github.com/encode/httpx.git",
+      "defaultBranch": "master",
+      "sizeClass": "medium",
+      "taskTypes": ["bugfix", "feature", "test-fix"]
+    },
+    {
+      "id": "fastapi",
+      "ecosystem": "python",
+      "url": "https://github.com/fastapi/fastapi.git",
+      "defaultBranch": "master",
+      "sizeClass": "large",
+      "taskTypes": ["bugfix", "feature", "refactor", "test-fix"]
+    }
+  ]
+}

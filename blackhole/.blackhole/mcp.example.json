@@ -1,0 +1,34 @@
+{
+  "enabled": true,
+  "defaultPermission": "ask",
+  "connectTimeoutMs": 15000,
+  "requestTimeoutMs": 30000,
+  "servers": {
+    "context7": {
+      "enabled": false,
+      "command": "npx",
+      "args": ["-y", "@upstash/context7-mcp"],
+      "env": {}
+    },
+    "playwright": {
+      "enabled": false,
+      "command": "npx",
+      "args": ["-y", "@playwright/mcp@latest"],
+      "env": {}
+    },
+    "github": {
+      "enabled": false,
+      "command": "npx",
+      "args": ["-y", "@modelcontextprotocol/server-github"],
+      "env": {
+        "GITHUB_PERSONAL_ACCESS_TOKEN": "${GITHUB_TOKEN}"
+      }
+    }
+  },
+  "permissions": {
+    "*": "ask",
+    "context7/*": "allow",
+    "playwright/*": "ask",
+    "github/*": "ask"
+  }
+}

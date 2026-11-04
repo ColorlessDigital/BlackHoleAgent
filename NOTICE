@@ -1,0 +1,12 @@
+BlackHole
+Copyright 2026 KGE7
+
+BlackHole-owned source code and documentation are licensed under the
+Apache License, Version 2.0. See LICENSE.
+
+Third-party dependencies, runtime distributions, assets and trademarks
+remain subject to their respective licenses and notices. Inclusion in or
+use by BlackHole does not relicense them under Apache-2.0.
+
+This source distribution does not include GGUF model weights, runtime
+binaries, user credentials or the original developer's signing certificate.

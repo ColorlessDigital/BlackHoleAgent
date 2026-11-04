@@ -1,0 +1,175 @@
+{
+  "name": "BlackHole autocomplete benchmark corpus",
+  "version": 1,
+  "description": "Fast FIM-style completion cases for latency, duplicate removal, multiline completion, and symbol awareness.",
+  "cases": [
+    {
+      "id": "js-return-expression",
+      "type": "bugfix",
+      "languageId": "javascript",
+      "file": "src/math.js",
+      "input": {
+        "prefix": "export function add(a, b) {\n  ",
+        "suffix": "\n}\n",
+        "currentLine": "  "
+      },
+      "expected": "return a + b;",
+      "modelOutput": "return a + b;"
+    },
+    {
+      "id": "ts-interface-implementation",
+      "type": "feature",
+      "languageId": "typescript",
+      "file": "src/cache.ts",
+      "input": {
+        "imports": ["import type { CacheEntry } from './types';"],
+        "symbols": ["CacheEntry", "MemoryCache"],
+        "prefix": "class MemoryCache {\n  private items = new Map<string, CacheEntry>();\n\n  get(key: string): CacheEntry | undefined {\n    ",
+        "suffix": "\n  }\n}\n",
+        "currentLine": "    "
+      },
+      "expected": "return this.items.get(key);",
+      "modelOutput": "return this.items.get(key);"
+    },
+    {
+      "id": "py-guard-clause",
+      "type": "bugfix",
+      "languageId": "python",
+      "file": "src/users.py",
+      "input": {
+        "imports": ["from typing import Mapping"],
+        "symbols": ["normalize_user"],
+        "prefix": "def normalize_user(payload: Mapping[str, str]) -> str:\n    name = payload.get('name', '').strip()\n    ",
+        "suffix": "\n    return name.lower()\n",
+        "currentLine": "    "
+      },
+      "expected": "if not name:",
+      "modelOutput": "if not name:\n        raise ValueError('name is required')"
+    },
+    {
+      "id": "jsx-map-list",
+      "type": "feature",
+      "languageId": "javascriptreact",
+      "file": "src/UserList.jsx",
+      "input": {
+        "imports": ["import React from 'react';"],
+        "symbols": ["UserList"],
+        "prefix": "export function UserList({ users }) {\n  return (\n    <ul>\n      ",
+        "suffix": "\n    </ul>\n  );\n}\n",
+        "currentLine": "      "
+      },
+      "expected": "{users.map",
+      "modelOutput": "{users.map(user => (\n        <li key={user.id}>{user.name}</li>\n      ))}"
+    },
+    {
+      "id": "ts-remove-prefix-echo",
+      "type": "refactor",
+      "languageId": "typescript",
+      "file": "src/result.ts",
+      "input": {
+        "prefix": "function ok(value: string) {\n  ret",
+        "suffix": "\n}\n",
+        "currentLine": "  ret"
+      },
+      "expected": "urn { ok: true, value };",
+      "modelOutput": "return { ok: true, value };"
+    },
+    {
+      "id": "js-remove-suffix-echo",
+      "type": "test-fix",
+      "languageId": "javascript",
+      "file": "test/example.test.js",
+      "input": {
+        "imports": ["import assert from 'assert/strict';"],
+        "prefix": "test('adds numbers', () => {\n  ",
+        "suffix": "assert.equal(add(1, 2), 3);\n});\n",
+        "currentLine": "  "
+      },
+      "expected": "const result = add(1, 2);",
+      "modelOutput": "const result = add(1, 2);\nassert.equal(add(1, 2), 3);"
+    },
+    {
+      "id": "py-multiline-loop",
+      "type": "feature",
+      "languageId": "python",
+      "file": "src/metrics.py",
+      "input": {
+        "prefix": "def total(values: list[int]) -> int:\n    result = 0\n    ",
+        "suffix": "\n    return result\n",
+        "currentLine": "    "
+      },
+      "expected": "for value in values:",
+      "modelOutput": "for value in values:\n        result += value"
+    },
+    {
+      "id": "ts-import-aware-call",
+      "type": "feature",
+      "languageId": "typescript",
+      "file": "src/report.ts",
+      "input": {
+        "imports": ["import { formatDate } from './date';"],
+        "symbols": ["formatDate", "buildReport"],
+        "prefix": "export function buildReport(date: Date) {\n  return {\n    generatedAt: ",
+        "suffix": "\n  };\n}\n",
+        "currentLine": "    generatedAt: "
+      },
+      "expected": "formatDate(date)",
+      "modelOutput": "formatDate(date)"
+    },
+    {
+      "id": "js-catch-block",
+      "type": "bugfix",
+      "languageId": "javascript",
+      "file": "src/client.js",
+      "input": {
+        "symbols": ["logger"],
+        "prefix": "try {\n  await sendRequest(payload);\n} catch (error) {\n  ",
+        "suffix": "\n}\n",
+        "currentLine": "  "
+      },
+      "expected": "logger.error",
+      "modelOutput": "logger.error('request failed', error);\n  throw error;"
+    },
+    {
+      "id": "py-test-assertion",
+      "type": "test-fix",
+      "languageId": "python",
+      "file": "tests/test_math.py",
+      "input": {
+        "imports": ["from app.math import add"],
+        "prefix": "def test_add():\n    result = add(2, 3)\n    ",
+        "suffix": "\n",
+        "currentLine": "    "
+      },
+      "expected": "assert result == 5",
+      "modelOutput": "assert result == 5"
+    },
+    {
+      "id": "ts-async-await",
+      "type": "feature",
+      "languageId": "typescript",
+      "file": "src/api.ts",
+      "input": {
+        "symbols": ["fetchUser", "User"],
+        "prefix": "export async function fetchUserName(id: string): Promise<string> {\n  const user = await fetchUser(id);\n  ",
+        "suffix": "\n}\n",
+        "currentLine": "  "
+      },
+      "expected": "return user.name;",
+      "modelOutput": "return user.name;"
+    },
+    {
+      "id": "css-rule-completion",
+      "type": "refactor",
+      "languageId": "css",
+      "file": "src/app.css",
+      "input": {
+        "prefix": ".toolbar button {\n  display: inline-flex;\n  align-items: center;\n  ",
+        "suffix": "\n}\n",
+        "currentLine": "  "
+      },
+      "expected": "gap: 8px;",
+      "modelOutput": "gap: 8px;\n  justify-content: center;"
+    }
+  ]
+}

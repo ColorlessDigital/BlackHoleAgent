@@ -1,0 +1,45 @@
+name: BlackHole Linux Build
+
+on:
+  workflow_dispatch:
+  pull_request:
+    paths:
+      - 'blackhole/**'
+      - 'vscode-blackhole/**'
+      - '.github/workflows/blackhole-linux-release.yml'
+
+permissions:
+  contents: read
+
+jobs:
+  linux-release:
+    runs-on: ubuntu-22.04
+    timeout-minutes: 45
+    defaults:
+      run:
+        working-directory: blackhole
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.21.0'
+      - name: Validate Shell Scripts
+        run: bash -n scripts/setup-kali-runtime.sh scripts/build-kali-release.sh
+      - name: Build And Smoke Test Linux Release
+        env:
+          BUILD_JOBS: '2'
+        run: npm run build:kali
+      - uses: actions/upload-artifact@v4
+        if: success()
+        with:
+          name: blackhole-linux-x64
+          path: |
+            linux/*.AppImage
+            linux/*.deb
+            linux/*.tar.gz
+            linux/BUILDINFO.json
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: blackhole-linux-diagnostics
+          path: blackhole/data/diagnostics/

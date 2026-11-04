@@ -1,0 +1,147 @@
+{
+  "name": "BlackHole real repository task matrix",
+  "version": 1,
+  "description": "Task templates mapped to real repositories. These are used to classify solve-rate, tool failures, rollback rate, and indexing durability by work type.",
+  "tasks": [
+    {
+      "id": "express-route-error-handling",
+      "repoId": "express",
+      "type": "bugfix",
+      "prompt": "Fix a route error-handling regression while preserving existing middleware behavior.",
+      "verification": "Run the targeted router or middleware test file."
+    },
+    {
+      "id": "express-test-fixture-update",
+      "repoId": "express",
+      "type": "test-fix",
+      "prompt": "Update a failing request/response assertion without weakening the behavior being tested.",
+      "verification": "Run the changed test file only."
+    },
+    {
+      "id": "lodash-edge-case",
+      "repoId": "lodash",
+      "type": "bugfix",
+      "prompt": "Patch a utility edge case and add a focused regression assertion.",
+      "verification": "Run the lodash test target that covers the utility."
+    },
+    {
+      "id": "lodash-refactor-helper",
+      "repoId": "lodash",
+      "type": "refactor",
+      "prompt": "Refactor duplicate helper logic while preserving public exports.",
+      "verification": "Run the related helper tests."
+    },
+    {
+      "id": "axios-adapter-feature",
+      "repoId": "axios",
+      "type": "feature",
+      "prompt": "Add a small adapter option and document its behavior through tests.",
+      "verification": "Run the adapter test suite."
+    },
+    {
+      "id": "axios-timeout-bugfix",
+      "repoId": "axios",
+      "type": "bugfix",
+      "prompt": "Fix a timeout or cancellation edge case without changing unrelated request behavior.",
+      "verification": "Run cancellation and timeout tests."
+    },
+    {
+      "id": "chalk-format-refactor",
+      "repoId": "chalk",
+      "type": "refactor",
+      "prompt": "Simplify style formatting logic while preserving ANSI output.",
+      "verification": "Run the changed unit tests."
+    },
+    {
+      "id": "commander-option-feature",
+      "repoId": "commander",
+      "type": "feature",
+      "prompt": "Add a focused CLI option behavior with parser tests.",
+      "verification": "Run option parser tests."
+    },
+    {
+      "id": "fastify-plugin-regression",
+      "repoId": "fastify",
+      "type": "bugfix",
+      "prompt": "Fix a plugin registration regression and keep hook order stable.",
+      "verification": "Run plugin and hooks tests."
+    },
+    {
+      "id": "fastify-test-fix",
+      "repoId": "fastify",
+      "type": "test-fix",
+      "prompt": "Repair a failing test caused by changed async timing while preserving intent.",
+      "verification": "Run the single affected test file."
+    },
+    {
+      "id": "flask-config-feature",
+      "repoId": "flask",
+      "type": "feature",
+      "prompt": "Add a small configuration behavior with docs-oriented tests.",
+      "verification": "Run Flask config tests."
+    },
+    {
+      "id": "flask-routing-bugfix",
+      "repoId": "flask",
+      "type": "bugfix",
+      "prompt": "Fix a routing edge case and add a focused regression test.",
+      "verification": "Run routing tests."
+    },
+    {
+      "id": "requests-header-bugfix",
+      "repoId": "requests",
+      "type": "bugfix",
+      "prompt": "Fix a header normalization edge case without breaking compatibility.",
+      "verification": "Run the related requests tests."
+    },
+    {
+      "id": "requests-test-fix",
+      "repoId": "requests",
+      "type": "test-fix",
+      "prompt": "Repair a failing transport test by aligning fixture setup with expected behavior.",
+      "verification": "Run the targeted transport test."
+    },
+    {
+      "id": "click-command-refactor",
+      "repoId": "click",
+      "type": "refactor",
+      "prompt": "Refactor command parsing helper code while keeping public CLI output stable.",
+      "verification": "Run command parser tests."
+    },
+    {
+      "id": "pytest-fixture-feature",
+      "repoId": "pytest",
+      "type": "feature",
+      "prompt": "Implement a small fixture behavior and verify it through focused tests.",
+      "verification": "Run fixture tests."
+    },
+    {
+      "id": "pytest-assertion-bugfix",
+      "repoId": "pytest",
+      "type": "bugfix",
+      "prompt": "Fix an assertion explanation edge case and add a regression test.",
+      "verification": "Run assertion tests."
+    },
+    {
+      "id": "httpx-timeout-feature",
+      "repoId": "httpx",
+      "type": "feature",
+      "prompt": "Add a small timeout behavior and keep transport compatibility intact.",
+      "verification": "Run timeout and transport tests."
+    },
+    {
+      "id": "fastapi-validation-bugfix",
+      "repoId": "fastapi",
+      "type": "bugfix",
+      "prompt": "Fix a validation edge case and add a regression test.",
+      "verification": "Run the validation test target."
+    },
+    {
+      "id": "fastapi-docs-test-fix",
+      "repoId": "fastapi",
+      "type": "test-fix",
+      "prompt": "Repair a failing docs-derived test without weakening schema assertions.",
+      "verification": "Run the affected docs/schema test."
+    }
+  ]
+}

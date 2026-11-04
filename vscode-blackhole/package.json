@@ -1,0 +1,271 @@
+{
+  "name": "vscode-blackhole",
+  "displayName": "BlackHole Developer Agent",
+  "description": "VS Code bridge for the local BlackHole autonomous development agent.",
+  "version": "1.1.0",
+  "publisher": "kge7",
+  "engines": {
+    "vscode": "^1.85.0"
+  },
+  "categories": [
+    "AI",
+    "Development",
+    "Programming Languages"
+  ],
+  "main": "./out/extension.js",
+  "icon": "resources/singularity-icon.png",
+  "activationEvents": [
+    "onView:blackhole.sidebar",
+    "onCommand:blackhole.focusChat",
+    "onCommand:blackhole.connect",
+    "onCommand:blackhole.setWorkspace",
+    "onCommand:blackhole.addToContext",
+    "onCommand:blackhole.askAboutSelection",
+    "onCommand:blackhole.resumeLatest",
+    "onCommand:blackhole.explainSelection",
+    "onCommand:blackhole.inlineEdit",
+    "onCommand:blackhole.fixDiagnostics",
+    "onCommand:blackhole.generateCompletion",
+    "onCommand:blackhole.reviewAgentDiffs",
+    "onCommand:blackhole.acceptDiffTransaction",
+    "onCommand:blackhole.rejectDiffTransaction",
+    "onCommand:blackhole.rollbackDiffTransaction",
+    "onCommand:blackhole.runAgentTask",
+    "onCommand:blackhole.runAgentTaskWithSelection",
+    "onLanguage"
+  ],
+  "contributes": {
+    "configuration": {
+      "title": "BlackHole",
+      "properties": {
+        "blackhole.apiBaseUrl": {
+          "type": "string",
+          "default": "http://127.0.0.1:3003",
+          "description": "Base URL of the local BlackHole API gateway."
+        },
+        "blackhole.autoSyncWorkspace": {
+          "type": "boolean",
+          "default": true,
+          "description": "Automatically sync the current VS Code workspace with BlackHole after connecting."
+        },
+        "blackhole.inlineCompletions.enabled": {
+          "type": "boolean",
+          "default": true,
+          "description": "Enable BlackHole inline code completions in the editor."
+        },
+        "blackhole.inlineCompletions.debounceMs": {
+          "type": "number",
+          "default": 220,
+          "minimum": 100,
+          "maximum": 300,
+          "description": "Delay before BlackHole asks the local autocomplete engine for an inline completion."
+        },
+        "blackhole.inlineCompletions.maxPrefixChars": {
+          "type": "number",
+          "default": 5000,
+          "minimum": 500,
+          "description": "Maximum number of characters before the cursor sent to BlackHole for inline completion."
+        },
+        "blackhole.inlineCompletions.maxSuffixChars": {
+          "type": "number",
+          "default": 2000,
+          "minimum": 250,
+          "description": "Maximum number of characters after the cursor sent to BlackHole for inline completion."
+        }
+      }
+    },
+    "viewsContainers": {
+      "activitybar": [
+        {
+          "id": "blackhole-explorer",
+          "title": "BlackHole",
+          "icon": "resources/singularity-icon.png"
+        }
+      ]
+    },
+    "views": {
+      "blackhole-explorer": [
+        {
+          "type": "webview",
+          "id": "blackhole.sidebar",
+          "name": "Agent"
+        }
+      ]
+    },
+    "commands": [
+      {
+        "command": "blackhole.focusChat",
+        "title": "BlackHole: Focus Agent"
+      },
+      {
+        "command": "blackhole.connect",
+        "title": "BlackHole: Connect to Local Agent"
+      },
+      {
+        "command": "blackhole.setWorkspace",
+        "title": "BlackHole: Sync Current Workspace"
+      },
+      {
+        "command": "blackhole.addToContext",
+        "title": "BlackHole: Attach Selection to Context"
+      },
+      {
+        "command": "blackhole.askAboutSelection",
+        "title": "BlackHole: Ask About Selection"
+      },
+      {
+        "command": "blackhole.resumeLatest",
+        "title": "BlackHole: Resume Latest Checkpoint"
+      },
+      {
+        "command": "blackhole.explainSelection",
+        "title": "BlackHole: Explain Selection"
+      },
+      {
+        "command": "blackhole.inlineEdit",
+        "title": "BlackHole: Inline Edit Selection"
+      },
+      {
+        "command": "blackhole.fixDiagnostics",
+        "title": "BlackHole: Fix Diagnostics"
+      },
+      {
+        "command": "blackhole.generateCompletion",
+        "title": "BlackHole: Generate Inline Completion"
+      },
+      {
+        "command": "blackhole.reviewAgentDiffs",
+        "title": "BlackHole: Review Agent Diffs"
+      },
+      {
+        "command": "blackhole.acceptDiffTransaction",
+        "title": "BlackHole: Accept Agent Diff"
+      },
+      {
+        "command": "blackhole.rejectDiffTransaction",
+        "title": "BlackHole: Reject Agent Diff"
+      },
+      {
+        "command": "blackhole.rollbackDiffTransaction",
+        "title": "BlackHole: Rollback Agent Diff"
+      },
+      {
+        "command": "blackhole.runAgentTask",
+        "title": "BlackHole: Run Agent Task"
+      },
+      {
+        "command": "blackhole.runAgentTaskWithSelection",
+        "title": "BlackHole: Run Agent Task With Selection"
+      }
+    ],
+    "menus": {
+      "editor/context": [
+        {
+          "command": "blackhole.addToContext",
+          "when": "editorHasSelection",
+          "group": "navigation@50"
+        },
+        {
+          "command": "blackhole.askAboutSelection",
+          "when": "editorHasSelection",
+          "group": "navigation@51"
+        },
+        {
+          "command": "blackhole.explainSelection",
+          "when": "editorHasSelection",
+          "group": "navigation@52"
+        },
+        {
+          "command": "blackhole.inlineEdit",
+          "when": "editorHasSelection",
+          "group": "navigation@53"
+        },
+        {
+          "command": "blackhole.fixDiagnostics",
+          "group": "navigation@54"
+        },
+        {
+          "command": "blackhole.generateCompletion",
+          "group": "navigation@55"
+        },
+        {
+          "command": "blackhole.reviewAgentDiffs",
+          "group": "navigation@56"
+        },
+        {
+          "command": "blackhole.runAgentTask",
+          "group": "navigation@57"
+        },
+        {
+          "command": "blackhole.runAgentTaskWithSelection",
+          "when": "editorHasSelection",
+          "group": "navigation@58"
+        }
+      ],
+      "commandPalette": [
+        {
+          "command": "blackhole.focusChat"
+        },
+        {
+          "command": "blackhole.connect"
+        },
+        {
+          "command": "blackhole.setWorkspace"
+        },
+        {
+          "command": "blackhole.addToContext"
+        },
+        {
+          "command": "blackhole.askAboutSelection"
+        },
+        {
+          "command": "blackhole.resumeLatest"
+        },
+        {
+          "command": "blackhole.explainSelection"
+        },
+        {
+          "command": "blackhole.inlineEdit"
+        },
+        {
+          "command": "blackhole.fixDiagnostics"
+        },
+        {
+          "command": "blackhole.generateCompletion"
+        },
+        {
+          "command": "blackhole.reviewAgentDiffs"
+        },
+        {
+          "command": "blackhole.acceptDiffTransaction"
+        },
+        {
+          "command": "blackhole.rejectDiffTransaction"
+        },
+        {
+          "command": "blackhole.rollbackDiffTransaction"
+        },
+        {
+          "command": "blackhole.runAgentTask"
+        },
+        {
+          "command": "blackhole.runAgentTaskWithSelection"
+        }
+      ]
+    }
+  },
+  "scripts": {
+    "vscode:prepublish": "npm run compile",
+    "compile": "tsc -p ./",
+    "watch": "tsc -watch -p ./",
+    "package:vsix": "vsce package --allow-missing-repository --no-dependencies",
+    "test:e2e": "node ./test/runTest.js"
+  },
+  "devDependencies": {
+    "@types/node": "^20.11.0",
+    "@types/vscode": "^1.85.0",
+    "@vscode/test-electron": "^2.5.2",
+    "@vscode/vsce": "^3.6.3",
+    "typescript": "^5.3.3"
+  }
+}

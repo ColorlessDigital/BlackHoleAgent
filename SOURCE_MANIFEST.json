@@ -1,0 +1,1542 @@
+[
+  {
+    "path": ".gitattributes",
+    "bytes": 29,
+    "sha256": "13cb7f5e12dd469dc5c88afcf0cd035abe6cd1fc2f30afe224991e66b4262222"
+  },
+  {
+    "path": ".github/workflows/blackhole-linux-release.yml",
+    "bytes": 1132,
+    "sha256": "35b47634b74329adbb6dca7ff1781b419ad88c65b5338b25ece6fe97136cba72"
+  },
+  {
+    "path": ".github/workflows/blackhole-pr-check.yml",
+    "bytes": 1030,
+    "sha256": "671240fbbb803b25b7d7680b412c37a46a0e3a5caa6ef9a069c146fc6ab67c74"
+  },
+  {
+    "path": ".gitignore",
+    "bytes": 2391,
+    "sha256": "42ccb73ed0c843874afc35f72093fa66f76edae8cb17eae7eb2fe9870f03ac6c"
+  },
+  {
+    "path": "LICENSE",
+    "bytes": 11358,
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+  },
+  {
+    "path": "NOTICE",
+    "bytes": 493,
+    "sha256": "e33ce4e1ec3f6a04a3e1899c2456e95349fdf32b48b527aa23d3dfaa121ed66b"
+  },
+  {
+    "path": "PUBLIC_SOURCE_PROVENANCE.json",
+    "bytes": 2046,
+    "sha256": "e66e978ba1740039e360ca107670fbb7bd245ac9790534e8ad8ae003c5d7563a"
+  },
+  {
+    "path": "PUBLIC_VALIDATION.json",
+    "bytes": 3549,
+    "sha256": "b5d65353698264e155ce9ce42ef0368854cf871076f2ea0890c424b66917c485"
+  },
+  {
+    "path": "README.en.md",
+    "bytes": 4674,
+    "sha256": "b381e14cc7ad9d60f34cdc2ebe3b147c450ab5fb82cae8254e16c22177502e2f"
+  },
+  {
+    "path": "README.md",
+    "bytes": 9211,
+    "sha256": "caeff2fda0662aad6d05d223f7a75931df6232e7b41d5160debb964c6655541c"
+  },
+  {
+    "path": "THIRD_PARTY.md",
+    "bytes": 2125,
+    "sha256": "6eb5769c54f8a67f1ecc219ad6421a52958b5c9ace314c4fa2680afdbed4328d"
+  },
+  {
+    "path": "THIRD_PARTY_PACKAGES.json",
+    "bytes": 373346,
+    "sha256": "8c6f595d92d6d32666ec1466409a0ee69a2fb08f9889db28618148bff8a9e754"
+  },
+  {
+    "path": "blackhole/.blackhole/checks/agent-platform-regression.md",
+    "bytes": 531,
+    "sha256": "a6da70be17d759eb0c984a4eb8313faa8b5cec378519c2c93fe847378d43279a"
+  },
+  {
+    "path": "blackhole/.blackhole/checks/changed-files-quality.md",
+    "bytes": 371,
+    "sha256": "89d643551e71452f4936bd7bbc4906184c4a7ed8b4f7be474de88e44907fdca1"
+  },
+  {
+    "path": "blackhole/.blackhole/checks/frontend-ui-stability.md",
+    "bytes": 377,
+    "sha256": "d4406304e1db5fc6d50735368169d394eec3cead16e6eb7f1aa3efdf90b73a11"
+  },
+  {
+    "path": "blackhole/.blackhole/checks/source-controlled-ai-checks.md",
+    "bytes": 448,
+    "sha256": "78e2482c5f5d44399e15c03c285a738e945419a399f0e3886e1ddede0de5b2b3"
+  },
+  {
+    "path": "blackhole/.blackhole/config.yaml",
+    "bytes": 414,
+    "sha256": "f0392e47a43a092d2d82e258c6b9ccc62ee9b5bcbb1a0212239c0b7654690141"
+  },
+  {
+    "path": "blackhole/.blackhole/mcp.example.json",
+    "bytes": 733,
+    "sha256": "144965ef086983f44c86e669cd20103faa213891f4810464c7b92ec1f0574e2d"
+  },
+  {
+    "path": "blackhole/.blackhole/models.yaml",
+    "bytes": 1084,
+    "sha256": "fc4d256ed878dcbd9e9f2b3435f44d3e9da43e0c922df23aadfb69d068025b6e"
+  },
+  {
+    "path": "blackhole/.blackhole/prompts/agent.md",
+    "bytes": 375,
+    "sha256": "b3b4324eb634f2ea2da699e29665f542bfc6e0ca12f26c5644ea0a9af6f0402f"
+  },
+  {
+    "path": "blackhole/.blackhole/prompts/system.md",
+    "bytes": 599,
+    "sha256": "950491d80ffc6d874f7ea4f62515a81fdc0103874d019475299dbcc6b0105f3e"
+  },
+  {
+    "path": "blackhole/.blackhole/rules/coding-standard.md",
+    "bytes": 776,
+    "sha256": "33a47146387cba337d67132721653e295efcf7aa7461efc828351625ac197dd0"
+  },
+  {
+    "path": "blackhole/.blackhole/rules/pr-check.md",
+    "bytes": 536,
+    "sha256": "47fe98e5e54ae73073b7eadf2576c4f68999b8ec6ecc3aad308716ecc268d7c6"
+  },
+  {
+    "path": "blackhole/IMPROVEMENTS.md",
+    "bytes": 9852,
+    "sha256": "c94398fad7f661e5bbe4b6df2abcddff55a74af14dbed5c25d11156f31790bdd"
+  },
+  {
+    "path": "blackhole/benchmarks/agent-corpus/coding-fixes.json",
+    "bytes": 3358,
+    "sha256": "1e53a203a048727f30ff7d72f524c2c823300ee1244e020cf335cacb88a40c28"
+  },
+  {
+    "path": "blackhole/benchmarks/agent-e2e/e2e-cases.json",
+    "bytes": 58015,
+    "sha256": "e1b8aeba2f7fa126b5f4a8eb10165c3037c41cb3cd567a9bb3885b1e8b58cbc0"
+  },
+  {
+    "path": "blackhole/benchmarks/autocomplete/autocomplete-cases.json",
+    "bytes": 5797,
+    "sha256": "c0791780ce1caa69b9e228098d9c7b914208832057efa8e7b738e20fbd88450d"
+  },
+  {
+    "path": "blackhole/benchmarks/frontend-visual-baseline.json",
+    "bytes": 534,
+    "sha256": "1c29a1ad7221ec389273fd8d769c31e6dbe1991c5e04d17d68f3fd7d67a30bd0"
+  },
+  {
+    "path": "blackhole/benchmarks/real-repos/repos.json",
+    "bytes": 3011,
+    "sha256": "12863e1061fce1550668da3d7aea6ecaeea9ada90e7856c3d046ba7e1a1ed2f2"
+  },
+  {
+    "path": "blackhole/benchmarks/real-repos/tasks.json",
+    "bytes": 5171,
+    "sha256": "de114b65d7deef9836403d8997b8d9be4d2d7d8468445b84db6bb461047b3d78"
+  },
+  {
+    "path": "blackhole/build/include-runtime-files.cjs",
+    "bytes": 124,
+    "sha256": "203c9191139de450722879efbe6e6556974cdd17342ab3d2ccd7329bb9a3c4d6"
+  },
+  {
+    "path": "blackhole/build/installer.nsh",
+    "bytes": 843,
+    "sha256": "9d4358b103e93846593752d6f05238eb2b9b49a400999c82530e420b8e3219d2"
+  },
+  {
+    "path": "blackhole/build/linux.cjs",
+    "bytes": 439,
+    "sha256": "b91118f2f582d0b192c290d8edbd7700d079e38df235c35f8e621f0cf9150024"
+  },
+  {
+    "path": "blackhole/docs/AUTOCOMPLETE_REAL_REPO_PR_CHECKS.md",
+    "bytes": 2140,
+    "sha256": "4e60904968e19f72e1186e49e1d4ebc12e6a2cb418d76f1c9c429be1eab36b0a"
+  },
+  {
+    "path": "blackhole/docs/CONFIG_RULES_PROMPTS.md",
+    "bytes": 1568,
+    "sha256": "a7a7877344fbe0402be4b6c3784e2a73ece3f7da38d82bd69c732a0c4ecd92ff"
+  },
+  {
+    "path": "blackhole/docs/DEVELOPMENT_TRANSFER.md",
+    "bytes": 1216,
+    "sha256": "6f4bbc043bce1b9f3da12c952f0a5e4a675a1f3a94750f33cd696a3fd6be455c"
+  },
+  {
+    "path": "blackhole/docs/KALI_LINUX_RELEASE.md",
+    "bytes": 6914,
+    "sha256": "21079001e7ceaad247155f1ed1f88e3c4c8e9a9458b9313e427d913d3cd348a5"
+  },
+  {
+    "path": "blackhole/docs/MCP_INTEGRATION.md",
+    "bytes": 3473,
+    "sha256": "414780189a5c406c35fa3be4a9006310702c24a88fd6c19023845f09134d2aa6"
+  },
+  {
+    "path": "blackhole/docs/OPENCODE_GO.md",
+    "bytes": 2743,
+    "sha256": "7361c2df90904d920d4ae18b29c2ce2c8a9c766c9be4f3a0b1cdad58741462cc"
+  },
+  {
+    "path": "blackhole/docs/OPENGO_MODELS.md",
+    "bytes": 3660,
+    "sha256": "daa0f4f29d3adf22d81b4726b57faa7dae1d9759573bcb056d603adae397f3ee"
+  },
+  {
+    "path": "blackhole/docs/PORTFOLIO_DEMO.md",
+    "bytes": 8578,
+    "sha256": "e2f7b650a950c7810e623de2945d56977a9ad00a54632feb592bbedb124a6e6d"
+  },
+  {
+    "path": "blackhole/docs/ROOT_CA_OPERATIONS.md",
+    "bytes": 1456,
+    "sha256": "37ffd58fb149fae9e1a225276e7798d046b34891bb69b75c5d3131a3070fb04b"
+  },
+  {
+    "path": "blackhole/docs/WALKTHROUGH.md",
+    "bytes": 2760,
+    "sha256": "0da955dac237abcf3a595e4a7d037ab72101bb69969a32a99b695dd8881f6b7a"
+  },
+  {
+    "path": "blackhole/docs/WORK_LOG.md",
+    "bytes": 2348,
+    "sha256": "f42b4d8a58310f963b7bb8deb1097fd692066e0993111fea87f8779a539c267e"
+  },
+  {
+    "path": "blackhole/frontend/.gitignore",
+    "bytes": 253,
+    "sha256": "fe718e7babb14f3cbad2d97f08889b9ce5215ed3fe0e43b2b8cfbfb3b9b844e8"
+  },
+  {
+    "path": "blackhole/frontend/README.md",
+    "bytes": 1027,
+    "sha256": "a460b4dc7e6392e76aa54d844c9261b8db0adb7f967ba8300526456f1dcf5fb4"
+  },
+  {
+    "path": "blackhole/frontend/eslint.config.js",
+    "bytes": 1490,
+    "sha256": "4c1348624cb4e0ec92ab9da11e1e6711e62f773fc822f7ce4b85d3bda57a26c2"
+  },
+  {
+    "path": "blackhole/frontend/index.html",
+    "bytes": 360,
+    "sha256": "c489ca10e39dee2c944678c7cbe29c05c1464f0d3ad331829be0616dfe292ada"
+  },
+  {
+    "path": "blackhole/frontend/package-lock.json",
+    "bytes": 110207,
+    "sha256": "25e4005bc4c53a6c11f6d9d84859ee05e4fe0ae61203f9a4081cbe90fce777bd"
+  },
+  {
+    "path": "blackhole/frontend/package.json",
+    "bytes": 891,
+    "sha256": "0ae06d1631db0c210a2909bf4f3ab6af68843cc7fe230618bb3d9892e3402abc"
+  },
+  {
+    "path": "blackhole/frontend/public/favicon.svg",
+    "bytes": 9522,
+    "sha256": "61bc9a161de58248288e6905425d7180f0624c2865007b97d763fdac12043a66"
+  },
+  {
+    "path": "blackhole/frontend/public/icons.svg",
+    "bytes": 5031,
+    "sha256": "b45fa506195cfcdef406ba9f0c77b36ddc1a7c224040926ec70abc2fdea7b93a"
+  },
+  {
+    "path": "blackhole/frontend/src/App.css",
+    "bytes": 2891,
+    "sha256": "6e25a776d3e8102da5bacb3cb99f4a5fc662a2e01e6143140671a556d28c3d5c"
+  },
+  {
+    "path": "blackhole/frontend/src/App.tsx",
+    "bytes": 23351,
+    "sha256": "7dabb636329d493b5528ddadc75b0db88de9f4d7895f0bf7f31322d8ce321fa6"
+  },
+  {
+    "path": "blackhole/frontend/src/api/client.ts",
+    "bytes": 5605,
+    "sha256": "d39a838db9089d2dc092ef5cd877f88693fb7a0188f92dc510d5896635b88803"
+  },
+  {
+    "path": "blackhole/frontend/src/api/sse.test.ts",
+    "bytes": 3342,
+    "sha256": "6720d2952d361809a6ea12696ca654ce0f77166b5df9e8a4d028b825eccca53f"
+  },
+  {
+    "path": "blackhole/frontend/src/assets/hero.png",
+    "bytes": 13057,
+    "sha256": "881ffbcaafc212e49addad08846a5b82761355fa20624253af3477ba33262c5c"
+  },
+  {
+    "path": "blackhole/frontend/src/assets/react.svg",
+    "bytes": 4126,
+    "sha256": "35ef61ed53b323ae94a16a8ec659b3d0af3880698791133f23b084085ab1c2e5"
+  },
+  {
+    "path": "blackhole/frontend/src/assets/vite.svg",
+    "bytes": 8709,
+    "sha256": "5be21acd42eb7b896e517f4e0f0f11eb5c5d9e54fbbcebe9453f033008fcca6f"
+  },
+  {
+    "path": "blackhole/frontend/src/components/ChatPanel.tsx",
+    "bytes": 40491,
+    "sha256": "86ef4f22eb2223fc042c95962e612a030bd93f99233500ebc5d26e125c9a47ee"
+  },
+  {
+    "path": "blackhole/frontend/src/components/CodeSandbox.tsx",
+    "bytes": 915,
+    "sha256": "b8ece43181be49a0fd31d6c2cbb7aac082228f17b7c04e11452741887bd31ef8"
+  },
+  {
+    "path": "blackhole/frontend/src/components/FileExplorer.tsx",
+    "bytes": 2773,
+    "sha256": "6a5253ca2e0f7a97cde276e7827a6249d48da3b60e754c124b8ab76dedf25456"
+  },
+  {
+    "path": "blackhole/frontend/src/components/OperationalPanel.tsx",
+    "bytes": 20912,
+    "sha256": "b8c7134ec6c7bf241ee11f7ab79332111fdf7ab92315e8f6121efd17af80e2d0"
+  },
+  {
+    "path": "blackhole/frontend/src/components/ProductModeRail.tsx",
+    "bytes": 1801,
+    "sha256": "ac6c5564053bd9b905784a8663519449d4841053175a0ae497c3b2fc80a3901f"
+  },
+  {
+    "path": "blackhole/frontend/src/components/SecurityGate.tsx",
+    "bytes": 5893,
+    "sha256": "2b17f79b0edbc17a4b234233c5c2f5109ff3d2c3f47c10b74632115a88cf74ba"
+  },
+  {
+    "path": "blackhole/frontend/src/components/SettingsModal.tsx",
+    "bytes": 43344,
+    "sha256": "ee9bc01f422f9ac6ff71a86d5132e2a08f253cc032beffe02ffe9d0ae34b912b"
+  },
+  {
+    "path": "blackhole/frontend/src/components/TerminalPanel.tsx",
+    "bytes": 1929,
+    "sha256": "ed3e5a53c36b08536b7f071951bf6cb7eb41049ade7e7905b07f61ea2223d894"
+  },
+  {
+    "path": "blackhole/frontend/src/hooks/reasoning.test.ts",
+    "bytes": 1988,
+    "sha256": "a72e31916bfc9b2bd043cc8e56c6fddecf82453041764f820220cf31b23c8946"
+  },
+  {
+    "path": "blackhole/frontend/src/hooks/reasoning.ts",
+    "bytes": 1587,
+    "sha256": "e75ad1873f77bb865bd12f149de27ae873d195bd89bb84f773a0d46a247d2cc9"
+  },
+  {
+    "path": "blackhole/frontend/src/hooks/useAppState.ts",
+    "bytes": 5643,
+    "sha256": "50a046cbb6ff7c09e1a5c8f4e026130a4cd83c1d9b848bd23efa39b0f04c2e42"
+  },
+  {
+    "path": "blackhole/frontend/src/hooks/useChatState.ts",
+    "bytes": 25827,
+    "sha256": "4ce2488f7091482b2bdc03ad37af3d67bd84f412a2bb6dcad4ef666ca5134cc3"
+  },
+  {
+    "path": "blackhole/frontend/src/hooks/useCollaborationState.ts",
+    "bytes": 5746,
+    "sha256": "e29cd7f3c203cea3aa74557a6c8452829ac14a0152d2b812d946439f007a20f5"
+  },
+  {
+    "path": "blackhole/frontend/src/hooks/useIdeState.ts",
+    "bytes": 2595,
+    "sha256": "cdd9befbfd55c6b03c0ea4ba3f6c5edbb99f4346905429bd8663f136c9f40652"
+  },
+  {
+    "path": "blackhole/frontend/src/hooks/useLayoutState.ts",
+    "bytes": 10147,
+    "sha256": "d2e24731e71ac51c095246e70ac1661a2d4b73d512e4721835fd0705cc89cc00"
+  },
+  {
+    "path": "blackhole/frontend/src/hooks/useRuntimeState.ts",
+    "bytes": 21247,
+    "sha256": "214d639592c3212590cbccf6099eee6bc0afc78d9754b792ec1b73cec2c64740"
+  },
+  {
+    "path": "blackhole/frontend/src/hooks/useSessionState.ts",
+    "bytes": 3389,
+    "sha256": "2dbf8cc13ed237c99cda6d67f843a1eb0338ac248dc12f4872bce00d0ab6a699"
+  },
+  {
+    "path": "blackhole/frontend/src/hooks/useWorkspaceState.ts",
+    "bytes": 6300,
+    "sha256": "e8950cc5e26ee0de66259fd99a10fedf99f1307552e3007504bfd55fa22f9a8b"
+  },
+  {
+    "path": "blackhole/frontend/src/hooks/workspaceTree.test.ts",
+    "bytes": 1061,
+    "sha256": "8080a8423bda8f9a29d19cc16bc8292c95308a73a11b41e534b0c286b2d5c058"
+  },
+  {
+    "path": "blackhole/frontend/src/hooks/workspaceTree.ts",
+    "bytes": 762,
+    "sha256": "6518fa1819858d29d7aa0ca914dfac692732895aea0d88780139213614f9a808"
+  },
+  {
+    "path": "blackhole/frontend/src/index.css",
+    "bytes": 45720,
+    "sha256": "cf6c1c9ee2a9e260e94817145063575b26fe7680cb083239d4a16d37ecd58194"
+  },
+  {
+    "path": "blackhole/frontend/src/main.tsx",
+    "bytes": 226,
+    "sha256": "c89383baab814e1388ba5d9aa211b237ba9a35bf0a07ef3e73364a7fff84361b"
+  },
+  {
+    "path": "blackhole/frontend/src/translations.ts",
+    "bytes": 47172,
+    "sha256": "7f7cd344309d283c0e3d4e86079a8f44ebe45d336981c11d1de1adb659a6fc98"
+  },
+  {
+    "path": "blackhole/frontend/src/types.ts",
+    "bytes": 9492,
+    "sha256": "9df6fb0639a5fa8b364dc327dc437a9a2719d33b98aa87864b02428f4e624fe3"
+  },
+  {
+    "path": "blackhole/frontend/src/vite-env.d.ts",
+    "bytes": 38,
+    "sha256": "65996936fbb042915f7b74a200fcdde7e410f32a669b1ab9597cfaa4b0faddb5"
+  },
+  {
+    "path": "blackhole/frontend/tsconfig.json",
+    "bytes": 456,
+    "sha256": "12fe7cb7892a663c682c097c51269a542dd8010bfbeb376286a5870b95379507"
+  },
+  {
+    "path": "blackhole/frontend/vite.config.js",
+    "bytes": 161,
+    "sha256": "4d36db3522a7b2dd10e0936e1004373c7ee65f10f7cd7920cd76410459c15a45"
+  },
+  {
+    "path": "blackhole/models/README.md",
+    "bytes": 161,
+    "sha256": "3019ad9c3468d9d91ddc53f366daeaa594b03e3c62fd45d8bff99627b86914c1"
+  },
+  {
+    "path": "blackhole/models/manifest.json",
+    "bytes": 544,
+    "sha256": "2a8f5312efac077204c33a9d511fcdb1f2d5fd9e526bdd25266c94146c720f79"
+  },
+  {
+    "path": "blackhole/package-lock.json",
+    "bytes": 181177,
+    "sha256": "0d5a52e9aa350728ac85208e9939f58bf24d914b43e182e158c03769c36d38ff"
+  },
+  {
+    "path": "blackhole/package.json",
+    "bytes": 6644,
+    "sha256": "f6f986c464fd348e311a93dd6e2a566eacef6862fb7b46acca446ef221d2663b"
+  },
+  {
+    "path": "blackhole/scripts/agent-benchmark.js",
+    "bytes": 8358,
+    "sha256": "7919c6b1e994c5ef5c366f70ac2a18b7dde01eb1f223927d78ae0b0cd4234468"
+  },
+  {
+    "path": "blackhole/scripts/agent-e2e-eval.js",
+    "bytes": 14120,
+    "sha256": "c964aea9c3a3ec1236db39216e3777688a1395e207fc62e2b0d51f6570348894"
+  },
+  {
+    "path": "blackhole/scripts/agent-smoke-check.js",
+    "bytes": 4542,
+    "sha256": "8ddf8dac8b37d4ccef50136729a98b4b1c5b77a976b7d9d14b601248df5a2c95"
+  },
+  {
+    "path": "blackhole/scripts/autocomplete-benchmark.js",
+    "bytes": 2761,
+    "sha256": "596ae2dedb37b5fdd643e8eec394639846c84348a9b237c68ea89ac9708c7c2d"
+  },
+  {
+    "path": "blackhole/scripts/build-dev-archive.ps1",
+    "bytes": 2675,
+    "sha256": "ca4c1656887edcff13c592b507f19593ae2560f42a24c4ab2855ac0d8e085d2c"
+  },
+  {
+    "path": "blackhole/scripts/build-kali-release.sh",
+    "bytes": 2006,
+    "sha256": "cbfb83acba84dbf4cb25c6fee8edc2c684397af7ab4cd08d9b4e5ca780ca5edc"
+  },
+  {
+    "path": "blackhole/scripts/check-backend.js",
+    "bytes": 1473,
+    "sha256": "73c780dcefea364768fac77bd3c723a8b699f8370d421caabd35f98fa56a2c62"
+  },
+  {
+    "path": "blackhole/scripts/check-e2e-corpus.js",
+    "bytes": 2018,
+    "sha256": "34fbcee5089dd3da64fea02c23cd742b7c5f5407a01d73656c18319a13f8fc5a"
+  },
+  {
+    "path": "blackhole/scripts/check-electron-keychain.js",
+    "bytes": 731,
+    "sha256": "020343e0938f718bfc86bb56f5db345912788f9f53921a1c5c00e101419be830"
+  },
+  {
+    "path": "blackhole/scripts/check-release-parity.js",
+    "bytes": 4302,
+    "sha256": "55bac1a9415864b7880e55d42d2fb563c49348d9b487da37821972aa1b3c4cc8"
+  },
+  {
+    "path": "blackhole/scripts/check-vscode-extension.js",
+    "bytes": 3815,
+    "sha256": "3fdd10c438e7cdb077ec603ec8f1dc182199e7b738970086d0237d81a8ef81dc"
+  },
+  {
+    "path": "blackhole/scripts/check-workspace-rules.js",
+    "bytes": 7109,
+    "sha256": "38a72852bede604f18b658c080c767a3c9a33d2270ebde614e0225b61332cdce"
+  },
+  {
+    "path": "blackhole/scripts/code-intelligence-stress.js",
+    "bytes": 5097,
+    "sha256": "dfb8da3fc22b71a95616f72b814d81ba8aede69cba60ef049cdfb98a2e39c251"
+  },
+  {
+    "path": "blackhole/scripts/frontend-visual-check.js",
+    "bytes": 40305,
+    "sha256": "bfdc66a431e4d98576506a5bc469d7410c1b1f2c2fa7858a761462599617d852"
+  },
+  {
+    "path": "blackhole/scripts/generate-e2e-corpus.js",
+    "bytes": 33991,
+    "sha256": "b0b46995181253104dde2550d24c55d466739b72961a6c55bfd3d6faf04a5a0b"
+  },
+  {
+    "path": "blackhole/scripts/install-vscode-extension.js",
+    "bytes": 425,
+    "sha256": "af34042e41aa0715a9ff56acb1fb2ba6b0d69c78a9cd7af66293ed84b5b1c9f7"
+  },
+  {
+    "path": "blackhole/scripts/package-vscode-extension.js",
+    "bytes": 3907,
+    "sha256": "aefd5e3b99ac9ae61dba00fdca7a5bdd6cea1508dfbfc6254fdf47d5c2cce972"
+  },
+  {
+    "path": "blackhole/scripts/pr-check.js",
+    "bytes": 5034,
+    "sha256": "916c32ab62d0c413e59ca4ca6cfd069069746dbb6f2548262693f93ced152367"
+  },
+  {
+    "path": "blackhole/scripts/pr-diff-check.js",
+    "bytes": 2110,
+    "sha256": "1dd49502cbbdb025308dfa346da893975e50e34b30d368aa3adddf3e591b5365"
+  },
+  {
+    "path": "blackhole/scripts/prepare-platform-runtime.js",
+    "bytes": 4526,
+    "sha256": "d71fbcb6674f28714c2d0e090aa9b4ad761ca48909b29434f065aec55d041c74"
+  },
+  {
+    "path": "blackhole/scripts/proof-pipeline.js",
+    "bytes": 26889,
+    "sha256": "ede26286dcae9422cd6c07e5ddb3e5e73d7c3b1137a3eea25e1ae5421eba55ef"
+  },
+  {
+    "path": "blackhole/scripts/real-repo-eval.js",
+    "bytes": 13086,
+    "sha256": "2089d8f59932e3b8817641a32130c6f7bfa88ecfec4109f53ddaa1aa578a795c"
+  },
+  {
+    "path": "blackhole/scripts/release-check.js",
+    "bytes": 17786,
+    "sha256": "0cb101cc8d066c578bc1353102e1afd5a63517f8a9f2c654d71e1b9cf28f5921"
+  },
+  {
+    "path": "blackhole/scripts/release-metadata.js",
+    "bytes": 2606,
+    "sha256": "3ded77f9aba92695e6d8607e78ab4f6059d98dcc54b65b246133039969db062f"
+  },
+  {
+    "path": "blackhole/scripts/release-metadata.test.js",
+    "bytes": 2388,
+    "sha256": "ccc142ecb54f5bef9bf4fb00701ed5079693d72b90f389afc6ad0be122a9afd0"
+  },
+  {
+    "path": "blackhole/scripts/release-parity.js",
+    "bytes": 585,
+    "sha256": "49d939ceeea54ab49348076eb65bbf6d951f6d1522c038cc39949b62085f8c90"
+  },
+  {
+    "path": "blackhole/scripts/setup-kali-runtime.sh",
+    "bytes": 5060,
+    "sha256": "31d8443f18a1e489b42e537e181bfaeda6a0f59315ca4d702ec60afded20e4e1"
+  },
+  {
+    "path": "blackhole/scripts/sign-release.ps1",
+    "bytes": 9821,
+    "sha256": "353b595debe3bc46bacb200ddf084f52157bd00a5507882a92ab1d7df5092d6c"
+  },
+  {
+    "path": "blackhole/scripts/smoke-go-agent.cjs",
+    "bytes": 17714,
+    "sha256": "7b76239137081ca36155a4f3c0ca556e2d9e63050cae6db341ce8216dc0010a8"
+  },
+  {
+    "path": "blackhole/scripts/smoke-go-live.js",
+    "bytes": 7229,
+    "sha256": "1631dd6997bffb21956b04cc4ac070fdf3e9230d5a0e15f571f27427f2668302"
+  },
+  {
+    "path": "blackhole/scripts/smoke-local-model.js",
+    "bytes": 2043,
+    "sha256": "0f80195dc719514b6838eaa1da5a948b57c3de37d85924ad04784c107a3b6719"
+  },
+  {
+    "path": "blackhole/scripts/smoke-packaged-app.js",
+    "bytes": 7258,
+    "sha256": "06c9e45d2ac83394a796d424451a9fc15be519cfead0017f48163c1acd424424"
+  },
+  {
+    "path": "blackhole/scripts/stability-agent.cjs",
+    "bytes": 17714,
+    "sha256": "704309697801015dfea3d704186fdb11396319441ea6feb51914357abd90b6e7"
+  },
+  {
+    "path": "blackhole/scripts/test-vscode-extension-e2e.js",
+    "bytes": 2727,
+    "sha256": "039f211f6cca05f8b8eefb08f2124586881df1411eaf2e1b97b27041e47ad15e"
+  },
+  {
+    "path": "blackhole/scripts/write-build-info.js",
+    "bytes": 694,
+    "sha256": "f7ea6b5de526f2e8534aa36d4bbb17788c22f81f63cf1864ed52eea439954a9f"
+  },
+  {
+    "path": "blackhole/src/agent/collaborator.js",
+    "bytes": 4854,
+    "sha256": "1729372b6fc3f37114f3755caba4e49f2eaeacff7d76e1c9c08568f9e7b130bc"
+  },
+  {
+    "path": "blackhole/src/agent/contextCompactor.js",
+    "bytes": 5787,
+    "sha256": "ff4cfee51152a34337e5e8c409d43b3424d2d34595e5eeb1056d9d349260e8e6"
+  },
+  {
+    "path": "blackhole/src/agent/contextCompactor.test.js",
+    "bytes": 4523,
+    "sha256": "5acc0b7bc4b63ef429a5c2c699cc2d2261910da80167346393b29a9a58ec7963"
+  },
+  {
+    "path": "blackhole/src/agent/contextGuard.js",
+    "bytes": 4598,
+    "sha256": "2be41d3ee606f2106567ae57218ad9bdf443f2592e49051a155d2a542bf05611"
+  },
+  {
+    "path": "blackhole/src/agent/contextGuard.test.js",
+    "bytes": 3727,
+    "sha256": "87c8b73548ffb4a0e7a3e9d6cf5742dd25dc25cef3c87f307f8a9ec9e1a50c47"
+  },
+  {
+    "path": "blackhole/src/agent/core/actionJournal.js",
+    "bytes": 2378,
+    "sha256": "f804f25c2bc69ba119470ca0bc7a50a2d8989fb3ef12cef3c27c8f840d9654a4"
+  },
+  {
+    "path": "blackhole/src/agent/core/actionJournal.test.js",
+    "bytes": 15962,
+    "sha256": "dc3b6330deccc542f188fc516d79dae57d2b3830aa7921fa87eee1c0dc8d6fab"
+  },
+  {
+    "path": "blackhole/src/agent/core/agentMemoryStore.js",
+    "bytes": 5103,
+    "sha256": "868cb6fa0a12bd18eacd15108d2ebeea72f570d4eb8af8a07606de4b0cb2af62"
+  },
+  {
+    "path": "blackhole/src/agent/core/astAnalyzer.js",
+    "bytes": 16940,
+    "sha256": "e74ae78a22dfaa590f089abd32030933e7644c0721b73d6d445fae5ace5e9598"
+  },
+  {
+    "path": "blackhole/src/agent/core/astPackaging.test.js",
+    "bytes": 612,
+    "sha256": "ff62c96b623ce39be4e102722382d975ebecf3bee13eef033077a2dd015903e4"
+  },
+  {
+    "path": "blackhole/src/agent/core/checkpointResume.js",
+    "bytes": 3832,
+    "sha256": "83432d31a8f25d687b86c7458de90206f405e63ed082184038762e16e3cbf8dd"
+  },
+  {
+    "path": "blackhole/src/agent/core/checkpointStore.js",
+    "bytes": 4329,
+    "sha256": "c3d5f576a844fe56f593a43c1d01ba22c9c4608142a534c3e051d1bcb2e76b4b"
+  },
+  {
+    "path": "blackhole/src/agent/core/contextEngine.js",
+    "bytes": 48046,
+    "sha256": "9fd36f02ee147b9002e779ceee1d26b35ccdccb8cacca03edfb5105264300457"
+  },
+  {
+    "path": "blackhole/src/agent/core/contextEngine.test.js",
+    "bytes": 5472,
+    "sha256": "0cbffaee913e9af62441cf6292e0006f2c15e31487233b095ae6e16d49b8e67d"
+  },
+  {
+    "path": "blackhole/src/agent/core/diffTracker.js",
+    "bytes": 6265,
+    "sha256": "e5ce35a4fb318ff04f7db0693df92ceb7c53f9a0a5adfbcfedb44906ad074c1b"
+  },
+  {
+    "path": "blackhole/src/agent/core/directoryTask.js",
+    "bytes": 2769,
+    "sha256": "0f06e337067ac4ed8b0a73835b846bdffa05607caf37978d1bebe11505075203"
+  },
+  {
+    "path": "blackhole/src/agent/core/patchTransaction.js",
+    "bytes": 6061,
+    "sha256": "6a4638bace3f8f8d670991bbd8f01473e1c7efbabd4d91a8e4503fa50578d648"
+  },
+  {
+    "path": "blackhole/src/agent/core/patchTransactionStore.js",
+    "bytes": 5907,
+    "sha256": "e96f97826160031abbbec0f13cd979b979a62a2ad9f459234b5933f3d27f31db"
+  },
+  {
+    "path": "blackhole/src/agent/core/phaseGuards.js",
+    "bytes": 5623,
+    "sha256": "39fbd093576cd25e8496400dcf5a594c0b3d652dd7520a90e4bfcc1d4f3c56d8"
+  },
+  {
+    "path": "blackhole/src/agent/core/phaseGuards.test.js",
+    "bytes": 5001,
+    "sha256": "c25acf27e1327bffe7385d299707686e6cf7c8694f4a748351927c7ee04b3a92"
+  },
+  {
+    "path": "blackhole/src/agent/core/policyEngine.test.js",
+    "bytes": 1932,
+    "sha256": "22851cb459e83159cf6cd391570a6bd581b08983c833c97cd70aeae2a4b4bf15"
+  },
+  {
+    "path": "blackhole/src/agent/core/repairPlanner.js",
+    "bytes": 13114,
+    "sha256": "72e5cb6f01bc66d1e1d5538d810d436ddf3fe66326c94599c2b76780e118891a"
+  },
+  {
+    "path": "blackhole/src/agent/core/stateMachine.js",
+    "bytes": 76290,
+    "sha256": "9bde67d1c914c2b84431bd4f173fb34304c90c254b9b92c483150e1b7fdd9e3b"
+  },
+  {
+    "path": "blackhole/src/agent/core/stateMachine.test.js",
+    "bytes": 99054,
+    "sha256": "8d5d920e4b9ebc377b3866409cbcf8b07effb24bd912d340e41a965382939a1d"
+  },
+  {
+    "path": "blackhole/src/agent/core/taskGraphPlanner.js",
+    "bytes": 6551,
+    "sha256": "243116f4adfa2e0d357f71091dcbe9ad3782b41d804254a60a2e38e9769f5b59"
+  },
+  {
+    "path": "blackhole/src/agent/core/toolRegistry.js",
+    "bytes": 30171,
+    "sha256": "f822d93759dab63715b040122b6c234b7f0cfa19e3e6ffcf68625fd328bd3562"
+  },
+  {
+    "path": "blackhole/src/agent/core/types.js",
+    "bytes": 1651,
+    "sha256": "1c05e3bb9afb7cb2943ed80ff39edb26c35713ffd5c948a51df5794982a4e59a"
+  },
+  {
+    "path": "blackhole/src/agent/core/verificationEngine.js",
+    "bytes": 25801,
+    "sha256": "ed10223534ce1f98ab025a9274e30ac23218e508847cd759dfddead838ecc05f"
+  },
+  {
+    "path": "blackhole/src/agent/llmRouter.js",
+    "bytes": 3871,
+    "sha256": "0bac3683497c09bc16b0f6e5690f4462a0385d21ec27cb158131eabf281c5e91"
+  },
+  {
+    "path": "blackhole/src/agent/llmRouter.test.js",
+    "bytes": 9179,
+    "sha256": "1bed2f35822fea8533919713a064540fe69eaa6ba194efa271cd9a945fd41730"
+  },
+  {
+    "path": "blackhole/src/agent/modelRouting.js",
+    "bytes": 3158,
+    "sha256": "997f2ee5321894091ff8d61dc3a20462ff0b8c77282e1725b800b86df247da43"
+  },
+  {
+    "path": "blackhole/src/agent/orchestrator.js",
+    "bytes": 1965,
+    "sha256": "213feee0742ddf92c8c43871dfa0c4c040260d1046737d3242747b4b4ced09bc"
+  },
+  {
+    "path": "blackhole/src/agent/orchestrator.test.js",
+    "bytes": 2974,
+    "sha256": "d6766a00402b941ece120dde484b7aa76cc3b071aae5168b348dbc8c6ca231d0"
+  },
+  {
+    "path": "blackhole/src/agent/toolParser.js",
+    "bytes": 14248,
+    "sha256": "edf4e612f759eb0b9436251104c26cd05fec49d9312e0688e11297d39c30ed24"
+  },
+  {
+    "path": "blackhole/src/agent/toolParser.test.js",
+    "bytes": 11081,
+    "sha256": "7fd5effcf7ece595d79c9fb0e71616caa9bf0a743d18798d2b0ab58041a8bc0e"
+  },
+  {
+    "path": "blackhole/src/capabilities/executor.js",
+    "bytes": 4922,
+    "sha256": "5e9cfdd20e8a88e7fdab5d33bada262837927179e2dda84e28b717fde77c00ef"
+  },
+  {
+    "path": "blackhole/src/ci/prDiffCheck.js",
+    "bytes": 11344,
+    "sha256": "2fe29b2beea270e4e4713a824c738683461ae693711ff78bedf21a7c9b49213e"
+  },
+  {
+    "path": "blackhole/src/ci/prDiffCheck.test.js",
+    "bytes": 2263,
+    "sha256": "851236f87c3323c71e714729e42f125e09de428831e39bbc914f161ade027ad8"
+  },
+  {
+    "path": "blackhole/src/common/boundedData.js",
+    "bytes": 1645,
+    "sha256": "cb5fb7a383e425cf7d7f5827b61b7a2afb7b71e65fd2819d757f4af3059eab61"
+  },
+  {
+    "path": "blackhole/src/common/eventBus.js",
+    "bytes": 353,
+    "sha256": "76fd2f6c1a4f28c611d6c40789c904a085d24355abd504cb71623dd00222ae35"
+  },
+  {
+    "path": "blackhole/src/common/paths.js",
+    "bytes": 3177,
+    "sha256": "497e25e73636775f96d237ff8c7db5644d492f2e45fb11b728915da8951ea204"
+  },
+  {
+    "path": "blackhole/src/config/agentRunLimits.js",
+    "bytes": 819,
+    "sha256": "c728353f90b694c6ed39c7277ab9ee44a6c3e5e1cb37efb6efcb9019f6309bb0"
+  },
+  {
+    "path": "blackhole/src/config/configStore.js",
+    "bytes": 12603,
+    "sha256": "89aabdcfd65db9d59c9717f6df5ce78c44ae250758f50608df180f5797215609"
+  },
+  {
+    "path": "blackhole/src/config/configStore.test.js",
+    "bytes": 8963,
+    "sha256": "f4187c2f9ab5b09f2a96668758f54291db9c48c9996881dbf0468837fbaae9f2"
+  },
+  {
+    "path": "blackhole/src/config/goModelSettings.js",
+    "bytes": 1391,
+    "sha256": "ab448d7b81db42a5766a8f617227298fa496f6dae2483331a0c8e022f7c2a9db"
+  },
+  {
+    "path": "blackhole/src/config/keychain.js",
+    "bytes": 2269,
+    "sha256": "6663cd86c9f60d544dd6d9b96d7bed384d91c8ba4435880e538dad2d2d0fde82"
+  },
+  {
+    "path": "blackhole/src/config/keychain.test.js",
+    "bytes": 1332,
+    "sha256": "48bc77ac4a6f3973a54cf2b3adf3daea340c3fe2035fceab4c398f570ca4ac7f"
+  },
+  {
+    "path": "blackhole/src/config/secretStore.js",
+    "bytes": 5434,
+    "sha256": "08ab17170236bbdb250cfac8b8661a821eac90692aa61ae9b661cfa1b2f03f43"
+  },
+  {
+    "path": "blackhole/src/config/secretStore.test.js",
+    "bytes": 2291,
+    "sha256": "50e91554906192bdc704430b233e66d8adc09bbc0978ea4f8bdea596d669cdeb"
+  },
+  {
+    "path": "blackhole/src/config/workspaceConfig.js",
+    "bytes": 11011,
+    "sha256": "6f96976dd48c3ff5ea59b8a38158431c61f525f446da07ca00f6093c3a28c76f"
+  },
+  {
+    "path": "blackhole/src/config/workspaceConfig.test.js",
+    "bytes": 5538,
+    "sha256": "5e1f33653f109f5710bcaee78d859a866664180588baff2e538d047e34b7ea6b"
+  },
+  {
+    "path": "blackhole/src/ide/autocompleteEngine.js",
+    "bytes": 22847,
+    "sha256": "46814b9634b7c557e97dfa50d44bc280c12601e7ef7cd80df771776f79630654"
+  },
+  {
+    "path": "blackhole/src/ide/autocompleteEngine.test.js",
+    "bytes": 3945,
+    "sha256": "5d407fe614bb2d443a3d5b7f527b7a11303771a73494cfe066ba115601d53349"
+  },
+  {
+    "path": "blackhole/src/ide/vscodeExtensionInstaller.js",
+    "bytes": 8077,
+    "sha256": "dc6bab062f073fe6f8d452858a7c7d2558b67645551a270da444709a5cecc048"
+  },
+  {
+    "path": "blackhole/src/main/electronMain.js",
+    "bytes": 2900,
+    "sha256": "f0e03e98d62f513e76a861e93f5de6c1ee00f159707848c99503b7eceb33fdcb"
+  },
+  {
+    "path": "blackhole/src/main/electronWindow.js",
+    "bytes": 1200,
+    "sha256": "289b2c882fc1665f8b7022c6f8e4190ba0adf0ce7848e38aee62fddebbcd5d62"
+  },
+  {
+    "path": "blackhole/src/main/preload.cjs",
+    "bytes": 573,
+    "sha256": "b2610490fef3dc943bc00746ff02f1c36d29f211eb941cefe699896a533943e5"
+  },
+  {
+    "path": "blackhole/src/mcp/blackholeMcpServer.js",
+    "bytes": 3675,
+    "sha256": "a554b3e714fe93b8b817770f68f04619a6a2627ca91fa28b081c5a43ed51f09e"
+  },
+  {
+    "path": "blackhole/src/mcp/mcpClient.js",
+    "bytes": 8839,
+    "sha256": "7d095f5d19bd910c4eaff94ce7fa37c389781ec88cb3762906fa254c87b222c5"
+  },
+  {
+    "path": "blackhole/src/mcp/mcpClient.test.js",
+    "bytes": 25654,
+    "sha256": "7175b82167b85e743c98247bd6d03b6bb32dd382b52be90915d6aecdcbad210d"
+  },
+  {
+    "path": "blackhole/src/mcp/mcpConfig.js",
+    "bytes": 8123,
+    "sha256": "e2386bc00878f714d0942b0dbdbb8fd027b035c9958e649098a3d3a09dc7cbbf"
+  },
+  {
+    "path": "blackhole/src/mcp/mcpConfig.test.js",
+    "bytes": 5518,
+    "sha256": "02a6440389d94abe07d55c3b5e380000073a56e26145d040604e41b3b6d4ff95"
+  },
+  {
+    "path": "blackhole/src/mcp/mcpDiagnostics.js",
+    "bytes": 2320,
+    "sha256": "5a933dd3ddeda6df7642facc7c7c8af47ef5b481448f5ab0d5b2f9780a5f5bec"
+  },
+  {
+    "path": "blackhole/src/mcp/mcpToolBridge.js",
+    "bytes": 4121,
+    "sha256": "1d9e8518e072e2d629959003dc1f5673a614b4e811045dc479f9c3cbbab725c5"
+  },
+  {
+    "path": "blackhole/src/mcp/stdioJsonRpc.js",
+    "bytes": 6485,
+    "sha256": "a9da3a0a29a6678577348672b89dd7b79a82f2d938b1407212270a4c15fcdb24"
+  },
+  {
+    "path": "blackhole/src/rag/indexer.js",
+    "bytes": 4648,
+    "sha256": "71e9b502283ad1c74f47b01a4125e388f6eb3a48ee2d039d08aabe4253819cb6"
+  },
+  {
+    "path": "blackhole/src/rag/search.js",
+    "bytes": 120,
+    "sha256": "ed1ae82add8109053bdea4936976347ee169ebc23ce7e1bd00556c81894bf9f5"
+  },
+  {
+    "path": "blackhole/src/rag/watcher.js",
+    "bytes": 1611,
+    "sha256": "957d21d362a3f9a066924e35104d4167988f3c0f54724c04be1c0e0d40d2c2c1"
+  },
+  {
+    "path": "blackhole/src/rag/worker.js",
+    "bytes": 3127,
+    "sha256": "f4716e7661c2fbf8a3713631f294c4b444728660d45d9e91f9bf82d6f90e7af0"
+  },
+  {
+    "path": "blackhole/src/rag/worker.test.js",
+    "bytes": 1710,
+    "sha256": "89827fe79dc011ba25b6f3a6f3e77f9ad23e01efda7f1153949331172fbd0b83"
+  },
+  {
+    "path": "blackhole/src/runtime/goAgentTools.test.js",
+    "bytes": 10423,
+    "sha256": "a1fb2018b287b361f69502f8c47c71571417241d8ff9167eeb64a65853a4648d"
+  },
+  {
+    "path": "blackhole/src/runtime/goModelCatalog.js",
+    "bytes": 8987,
+    "sha256": "5aca9f31564679ae0ccba9ae54b2a6467c970c818c46255b58eaae909883577a"
+  },
+  {
+    "path": "blackhole/src/runtime/goModelCatalog.test.js",
+    "bytes": 7495,
+    "sha256": "932a99114115c2c2481c892ab39b9e295dcbd97399b0192733d54b459c7ece1b"
+  },
+  {
+    "path": "blackhole/src/runtime/googleToolAdapter.js",
+    "bytes": 2777,
+    "sha256": "9ff84f984de60773199fb930ded356d19baeafc95b7b14570cd27b9fe58b7a9d"
+  },
+  {
+    "path": "blackhole/src/runtime/googleToolAdapter.test.js",
+    "bytes": 2314,
+    "sha256": "1ca6e333c41fd2f49964a356e7489ff007d255eb1cee56596e7e25801ba862fb"
+  },
+  {
+    "path": "blackhole/src/runtime/llamaCppRuntime.js",
+    "bytes": 19383,
+    "sha256": "820db18dd75d46f992421685dc1ce0b7df9206380dfea3d39ad59ef75379c2a5"
+  },
+  {
+    "path": "blackhole/src/runtime/llamaCppRuntime.test.js",
+    "bytes": 3670,
+    "sha256": "56aaa6b9d490964988e0bad118411e1a16ff928dd02d90e9885ed668a9ce6800"
+  },
+  {
+    "path": "blackhole/src/runtime/nativeGoTools.js",
+    "bytes": 5987,
+    "sha256": "2dd883d8ac6e2c4547e0269e31650381f7dae1096f6a4a0621603c989f190429"
+  },
+  {
+    "path": "blackhole/src/runtime/nativeGoTools.test.js",
+    "bytes": 2188,
+    "sha256": "cee8f7213b3127e4eea98251e2245a10887024203d7a4d5479b836bebdca214e"
+  },
+  {
+    "path": "blackhole/src/runtime/openCodeGoRuntime.js",
+    "bytes": 24399,
+    "sha256": "3ce88a85658c11cbe601acc4a9b98dfa9167656ab56b13dd3d1622f2dcb452dd"
+  },
+  {
+    "path": "blackhole/src/runtime/openCodeGoRuntime.test.js",
+    "bytes": 41921,
+    "sha256": "04acb643fa705776e6961fce0650fcc9885af2482160bd549569fa77a5f65121"
+  },
+  {
+    "path": "blackhole/src/runtime/openaiCompatRuntime.js",
+    "bytes": 7392,
+    "sha256": "a485f5057afe44334948a8034f068303f4a9fbe0fc544dbcc918c1d3575114e9"
+  },
+  {
+    "path": "blackhole/src/runtime/openaiCompatRuntime.test.js",
+    "bytes": 5676,
+    "sha256": "2544c050f77bd19315e29a6f74efb197dae7090af87863f7714463986151a799"
+  },
+  {
+    "path": "blackhole/src/runtime/reasoningStream.js",
+    "bytes": 2017,
+    "sha256": "69c5ff052c9989fea219e19f2241444a93e559f7b0bc2245d729e5f50039f916"
+  },
+  {
+    "path": "blackhole/src/runtime/runtimeRouter.js",
+    "bytes": 4953,
+    "sha256": "9b9f9c048335624ab3cc216930599155b821b089359c0cbe564e6d8e57245ec9"
+  },
+  {
+    "path": "blackhole/src/runtime/runtimeRouter.test.js",
+    "bytes": 4049,
+    "sha256": "33a02f933d0d799787cfae95b55ed4fafbef99a7f00dc506faff3300dba34324"
+  },
+  {
+    "path": "blackhole/src/runtime/usageTracker.js",
+    "bytes": 3598,
+    "sha256": "668672a3ae2467e76dafeeb0746c93a2fd1dab8660adee6f1f09cc5cd09eada7"
+  },
+  {
+    "path": "blackhole/src/runtime/usageTracker.test.js",
+    "bytes": 2482,
+    "sha256": "f6421a01bc8d4304dcc832560c413ae8527f94b2d98c052998db3f93df826651"
+  },
+  {
+    "path": "blackhole/src/security/approvalGate.js",
+    "bytes": 1836,
+    "sha256": "923978145467af356d76a174921d0758c98da8cf3662092d41b4535861550d5e"
+  },
+  {
+    "path": "blackhole/src/security/approvalGate.test.js",
+    "bytes": 2780,
+    "sha256": "d6d2466d3d8feb5c459a23d8d618a44a3563d7873e21d33554e56ae2647801b7"
+  },
+  {
+    "path": "blackhole/src/security/auditLog.js",
+    "bytes": 2044,
+    "sha256": "18df6447f0dd329e60f703b90160bea7228735a97572650218891be39b43d0b6"
+  },
+  {
+    "path": "blackhole/src/security/auditLog.test.js",
+    "bytes": 1153,
+    "sha256": "a84bbeaaf74246c2dcfe89a3eb192582159ba071aa63dc8caea2a54bb758a893"
+  },
+  {
+    "path": "blackhole/src/security/commandPolicy.js",
+    "bytes": 1345,
+    "sha256": "0173c051e237add471461ded8f72a23bf84cb6e841bb12c21038b5e8cd345cab"
+  },
+  {
+    "path": "blackhole/src/security/pathPolicy.js",
+    "bytes": 2148,
+    "sha256": "02a9c446f883ef4e7b08a89e0aa12d804bceb39129c235260391a0c120342852"
+  },
+  {
+    "path": "blackhole/src/security/policyEngine.js",
+    "bytes": 5669,
+    "sha256": "8f08b37ef8969f9608d35bf445ac3ddff1017702b7f2625672c4ab0ebae743eb"
+  },
+  {
+    "path": "blackhole/src/security/riskLevels.js",
+    "bytes": 301,
+    "sha256": "82be7f3182605e8e8ef3506e43950ff1be333792c467c543f902eba22418b63d"
+  },
+  {
+    "path": "blackhole/src/server/apiGateway.js",
+    "bytes": 4812,
+    "sha256": "b21bae01e0027e87815f727a64381c8d35751ca9bb6367603f1326928053ddda"
+  },
+  {
+    "path": "blackhole/src/server/auth.js",
+    "bytes": 1509,
+    "sha256": "12d9a7391e969c1b297a7ab9a6627510ce14cf5efd7edd90c9bc769535cee3ff"
+  },
+  {
+    "path": "blackhole/src/server/auth.test.js",
+    "bytes": 1580,
+    "sha256": "e0aabc9593e7f84a877754f98e948ec36bdce8f03c2096658d6df012f6595196"
+  },
+  {
+    "path": "blackhole/src/server/routes/agent.js",
+    "bytes": 1920,
+    "sha256": "556d1587dfb83e49864f6b1b64f411e14b1eda77f7b15885f246c731af3b183f"
+  },
+  {
+    "path": "blackhole/src/server/routes/chat.js",
+    "bytes": 7581,
+    "sha256": "92f1fffab751d78e0901f365cdd6462c24012f7659bc76abf9b90534caaf4195"
+  },
+  {
+    "path": "blackhole/src/server/routes/chatCancellation.test.js",
+    "bytes": 12233,
+    "sha256": "b9fda965651189f1ac6fa0126f59fc4b79b5c36be256dcd7eb23c449a0d0f850"
+  },
+  {
+    "path": "blackhole/src/server/routes/config.js",
+    "bytes": 3475,
+    "sha256": "37dde94dcb4d95ec8fe956030fc1dea37b6006a87ddbb44168a7eb890e6b2049"
+  },
+  {
+    "path": "blackhole/src/server/routes/config.test.js",
+    "bytes": 8737,
+    "sha256": "bd1d097d8305e5fbb638ba5145cf57a512e9d8b33a5705d4d04aba240ef731d3"
+  },
+  {
+    "path": "blackhole/src/server/routes/dialog.js",
+    "bytes": 5193,
+    "sha256": "7ff0a1908efad001b998275b11fa39a04a939f10b61ab9773d3950f0f0f91ce2"
+  },
+  {
+    "path": "blackhole/src/server/routes/diff.js",
+    "bytes": 1881,
+    "sha256": "5168c27aef955c7d65b21b7cef6aba0afb82d4a2f36aaab54d7884254aab78ac"
+  },
+  {
+    "path": "blackhole/src/server/routes/files.js",
+    "bytes": 1944,
+    "sha256": "fc5c569f86b7288a73fac8f3699d4a8e39caa4781b0ce31bb1e6b8ad8a441fac"
+  },
+  {
+    "path": "blackhole/src/server/routes/files.test.js",
+    "bytes": 1631,
+    "sha256": "563d6feac75c194943d2e2612709ca244bec08a94ad6980f481284d27558764c"
+  },
+  {
+    "path": "blackhole/src/server/routes/ide.js",
+    "bytes": 13859,
+    "sha256": "27a031ed208539c7a311c86c07235dc68fb7dfa4bad728c1691b6d6e74130349"
+  },
+  {
+    "path": "blackhole/src/server/routes/mcp.js",
+    "bytes": 2594,
+    "sha256": "f806e56028fce9f7647ea6b308e27fe3bd4c14ae30ef11aac03bcd731a8e7e44"
+  },
+  {
+    "path": "blackhole/src/server/routes/reports.js",
+    "bytes": 11293,
+    "sha256": "ec91d03913dc695a347d92452036c3dfed29a237a928977ae810a016e15be8d1"
+  },
+  {
+    "path": "blackhole/src/server/routes/runtime.js",
+    "bytes": 1982,
+    "sha256": "d9f54b8cf7c169dc419b34b9702ab46a594e20bbc46f144c9c0e84fd1c6dda0b"
+  },
+  {
+    "path": "blackhole/src/server/routes/security.js",
+    "bytes": 511,
+    "sha256": "42cbae2ad91b8736744bf89ed7af1a01778ab05a40f528fa68c961d97eb00307"
+  },
+  {
+    "path": "blackhole/src/server/routes/terminal.js",
+    "bytes": 889,
+    "sha256": "85d4e90434fd6ff35d478d5418ac7f3c04f76a0834f8e2d4b3116669f12d5a89"
+  },
+  {
+    "path": "blackhole/src/server/routes/web.js",
+    "bytes": 850,
+    "sha256": "69f1e499213035a1ebe9444c50b5d285d63ec2d414fd22d509f80a366b6f0909"
+  },
+  {
+    "path": "blackhole/src/server/routes/workspace.js",
+    "bytes": 702,
+    "sha256": "e6efcf36f616fab978c1f9d5934fd65c8cdad77dd352a43f987eb9a64897c0de"
+  },
+  {
+    "path": "blackhole/src/server/standalone.js",
+    "bytes": 270,
+    "sha256": "8c2c75f4c9f526d9392290e637bba62a6480d9051a9720a95c67ba1b367ee492"
+  },
+  {
+    "path": "blackhole/src/web/SearchService.js",
+    "bytes": 4346,
+    "sha256": "412d04fd0946fea54e7e9edcee4dd1528eba39199ccae107bd891f7ee1620389"
+  },
+  {
+    "path": "blackhole/src/web/crawler.js",
+    "bytes": 3302,
+    "sha256": "25a75e7a8a4b9ebd6346bf272a316e4715484bcf036f35cc66e5aa8ed7833d46"
+  },
+  {
+    "path": "blackhole/src/web/evidenceRepository.js",
+    "bytes": 2282,
+    "sha256": "47996dc8452fb32ee8e6e34334d8369c5476a7fa441c7538218c2d809b0095c2"
+  },
+  {
+    "path": "blackhole/src/web/evidenceStore.js",
+    "bytes": 9052,
+    "sha256": "1c77fcfffe23b956aaf12c67ee8bb95128f31007497bedcd67c0842516173abf"
+  },
+  {
+    "path": "blackhole/src/web/htmlInspector.js",
+    "bytes": 9658,
+    "sha256": "be66a961252b74a7cc907c3f7fc371dbdefdc4e9bdb148f62f90ee26716358cf"
+  },
+  {
+    "path": "blackhole/src/web/httpInspector.js",
+    "bytes": 6175,
+    "sha256": "eb7187c8f367d6f82aeb38d02bff291e7a5bf748204c8c859f15015380f09868"
+  },
+  {
+    "path": "blackhole/src/web/providers/BraveProvider.js",
+    "bytes": 1399,
+    "sha256": "de30bdfb6f15009a79e10a7860b8b86ab11f33838c5410a2cbc9b1fa98e4826c"
+  },
+  {
+    "path": "blackhole/src/web/providers/DuckDuckGoProvider.js",
+    "bytes": 4766,
+    "sha256": "a8b48b4adb798317ea55b1537a4b2af072b47115c4429bc9e8f5080d69e8b3f9"
+  },
+  {
+    "path": "blackhole/src/web/providers/ExaProvider.js",
+    "bytes": 1721,
+    "sha256": "5cfe60cece5749999100e94c6a7d4cba79c1688bb7be2d0176acd42d80bd7888"
+  },
+  {
+    "path": "blackhole/src/web/providers/FirecrawlProvider.js",
+    "bytes": 1551,
+    "sha256": "b26186ad151e96d4fd25d3b42f8e1a775e3eaa467baadc130c1e2b0cc78292fa"
+  },
+  {
+    "path": "blackhole/src/web/providers/TavilyProvider.js",
+    "bytes": 1405,
+    "sha256": "cf7f9a89e6df01e016290f423a1f3e947fc35b8b93fa486e84349d1683b4cd6d"
+  },
+  {
+    "path": "blackhole/src/web/renderCancellation.test.js",
+    "bytes": 2164,
+    "sha256": "fd55a7891be45eaf7d4154820e828ac8dbc5d91404b0378ae8d1c2fa168357e3"
+  },
+  {
+    "path": "blackhole/src/web/renderInspector.js",
+    "bytes": 4243,
+    "sha256": "86fa1eddb9673bf0adda3105d16803524a97d71b4f37e561908df3574dc91a61"
+  },
+  {
+    "path": "blackhole/src/web/requestScope.js",
+    "bytes": 748,
+    "sha256": "2aa2454ac67fad90dd6745d2cfe24cc72f2161cbabafecd05698f6a93740fd61"
+  },
+  {
+    "path": "blackhole/src/web/tlsInspector.js",
+    "bytes": 2707,
+    "sha256": "9885c7eb6453457fdbad67ec5c35f1ffbb58a9f10e18800284d2289837aabfed"
+  },
+  {
+    "path": "blackhole/src/web/urlPolicy.js",
+    "bytes": 826,
+    "sha256": "022ad2ef6ebc966abf20d029d2bc25cd2798e0c4c64f2938885bc42b702c4d8a"
+  },
+  {
+    "path": "blackhole/src/web/webCancellation.test.js",
+    "bytes": 5727,
+    "sha256": "5cd28226641a395f7711e7ae68e8f322abcea51e39f00c548f2fdee79c9440ee"
+  },
+  {
+    "path": "blackhole/src/web/webService.test.js",
+    "bytes": 13704,
+    "sha256": "af4e079ce01902824e97c59c39de104b9b9c0b0cb8e72582a0b182ea6dd873db"
+  },
+  {
+    "path": "blackhole/src/workspace/fileBroker.js",
+    "bytes": 5787,
+    "sha256": "00b6cf0e7c3c479dc15e6b7c58da878f21f13d5e9a58392ee6fcbd49d8d8605f"
+  },
+  {
+    "path": "blackhole/src/workspace/fileBroker.test.js",
+    "bytes": 5150,
+    "sha256": "58bd03e70a8c99be5fd63f7ba8367b608917cebcc73c9de9b0a07fdda3b641e6"
+  },
+  {
+    "path": "blackhole/src/workspace/terminalBroker.js",
+    "bytes": 3289,
+    "sha256": "168a1d76e8a73209786fd06525f851ce235a8a030eb3c95aa614998deb4f7401"
+  },
+  {
+    "path": "blackhole/src/workspace/terminalBroker.test.js",
+    "bytes": 1974,
+    "sha256": "0820e254292c8c1a3bcedf57383aaa3c34fc91fd58bc3ca36383787ecffc2a8e"
+  },
+  {
+    "path": "blackhole/src/workspace/workspaceManager.js",
+    "bytes": 1231,
+    "sha256": "9316c8fbd159825394d488105da599317bd161d2bd4419bcbfd8dff0b0c925e6"
+  },
+  {
+    "path": "docs/.nojekyll",
+    "bytes": 0,
+    "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855"
+  },
+  {
+    "path": "docs/DEMO.md",
+    "bytes": 5018,
+    "sha256": "8a63143322562f80200a1db67cf408dfd3f21d6b6913f15ec652a17ef09aefd1"
+  },
+  {
+    "path": "docs/PRESENTATION_VALIDATION.json",
+    "bytes": 2566,
+    "sha256": "e5394bd5dbf36672132ed24a0947f31adc5689c7938ab0ba549d0c4060983f9c"
+  },
+  {
+    "path": "docs/PUBLISHING.md",
+    "bytes": 2644,
+    "sha256": "32f5d8d10a3df1f3118cdeca495b24a41b07c033bc33d3d95daa9a5affa4ebd6"
+  },
+  {
+    "path": "docs/RELEASE.md",
+    "bytes": 2818,
+    "sha256": "6e235a2b69f280bf46159762be87285e0de4d14b0af52df50967ddd541f3192d"
+  },
+  {
+    "path": "docs/images/CAPTURE_REPORT.json",
+    "bytes": 794,
+    "sha256": "f4c94a79964e2978d1e390e09c58a11aef3c983db498858c3db214e44bd5d2f6"
+  },
+  {
+    "path": "docs/images/README.md",
+    "bytes": 1646,
+    "sha256": "c44ed54df79fc6a3a33077ddf27f3d7a9ad123212a7d47155807398b8e7314f8"
+  },
+  {
+    "path": "docs/images/architecture.svg",
+    "bytes": 3222,
+    "sha256": "c4aa39739bca50ed263f4176e98ecc36f8d539d9ab8157807809cbbfe2710d04"
+  },
+  {
+    "path": "docs/images/demo-plan.png",
+    "bytes": 128583,
+    "sha256": "80d66123d19d1b1cf9c99997692da4f624cc7d6e722af93ace74d454aecd913d"
+  },
+  {
+    "path": "docs/images/demo-working.png",
+    "bytes": 145015,
+    "sha256": "1c0d0f8214295bc604f50bb5925d037e7254d3b4311e8e4a0754a9c98d0dbdef"
+  },
+  {
+    "path": "docs/images/overview.png",
+    "bytes": 135521,
+    "sha256": "7becd47869a1b5d12b69a2e624b3c65dfd9a24aa3cf50d9ebc10199fd5aed6a1"
+  },
+  {
+    "path": "docs/images/recovery.png",
+    "bytes": 133721,
+    "sha256": "a659ed2dbde74975298ebf891e0888a81bbca3c307329c81ecb9544b2e40d11e"
+  },
+  {
+    "path": "docs/images/timeline.png",
+    "bytes": 119018,
+    "sha256": "bf7d953c781814f2677213292aebb6b9b594fa17a0ae2b6b6a5fcc0c6843349f"
+  },
+  {
+    "path": "docs/images/workflow-demo.gif",
+    "bytes": 142051,
+    "sha256": "446f12bb997abc59527c632178ad637d1be088996786bf2661f3c26e39a16583"
+  },
+  {
+    "path": "docs/index.html",
+    "bytes": 12430,
+    "sha256": "28147f58462a9609f6df7ecdab902b97b7be4e3ae4de9d623fd1749974fdfce9"
+  },
+  {
+    "path": "docs/license.txt",
+    "bytes": 11358,
+    "sha256": "cfc7749b96f63bd31c3c42b5c471bf756814053e847c10f3eb003417bc523d30"
+  },
+  {
+    "path": "docs/site.js",
+    "bytes": 904,
+    "sha256": "4a644ba11e4ba488fee7aaf47b3b82e2fb7db42a53bfa681a62608092894a835"
+  },
+  {
+    "path": "docs/styles.css",
+    "bytes": 7686,
+    "sha256": "d7c8ca56d13fc109a4edac35d4da95e48a68c91be428bfabe07327fd8bcbd323"
+  },
+  {
+    "path": "examples/multi-file/README.md",
+    "bytes": 726,
+    "sha256": "bb8bdb89955ed21a17478636f2c4b26b3367b2e715a11a9abc1ce7753c72ac44"
+  },
+  {
+    "path": "examples/multi-file/after/check.test.cjs",
+    "bytes": 430,
+    "sha256": "e26d2775425a1285a70ce349889ed280274c4a0f7b653e1cd15b1f14626bb6d7"
+  },
+  {
+    "path": "examples/multi-file/after/package.json",
+    "bytes": 139,
+    "sha256": "dc28aaa9a57d5fff26c7fc7ac32c251109518d64cb342791770f487243ea54ee"
+  },
+  {
+    "path": "examples/multi-file/after/src/cart.cjs",
+    "bytes": 97,
+    "sha256": "d3720c754f8ea8639cdb69c6b1bc8701b27fcee7671193eef9e4201ba69af80c"
+  },
+  {
+    "path": "examples/multi-file/after/src/label.cjs",
+    "bytes": 44,
+    "sha256": "56d01267f57b680ece7ac8c38096995baaeb32307e3b83de287bed828fa55ebf"
+  },
+  {
+    "path": "examples/multi-file/after/src/math.cjs",
+    "bytes": 31,
+    "sha256": "0ec5062faab170572a435284b5253963013467df51ba80c8508952311335954a"
+  },
+  {
+    "path": "examples/multi-file/before/check.test.cjs",
+    "bytes": 430,
+    "sha256": "e26d2775425a1285a70ce349889ed280274c4a0f7b653e1cd15b1f14626bb6d7"
+  },
+  {
+    "path": "examples/multi-file/before/package.json",
+    "bytes": 139,
+    "sha256": "dc28aaa9a57d5fff26c7fc7ac32c251109518d64cb342791770f487243ea54ee"
+  },
+  {
+    "path": "examples/multi-file/before/src/cart.cjs",
+    "bytes": 75,
+    "sha256": "4b4b7f08c3530c118a15fd6b1de35ffa591569a94fb3f4f5313a7e003ee7234f"
+  },
+  {
+    "path": "examples/multi-file/before/src/label.cjs",
+    "bytes": 44,
+    "sha256": "a5e8b73f4f84d90167b1ec4c77c4d8bb440e16f5cbaa4d099d78fc95b76f7672"
+  },
+  {
+    "path": "examples/multi-file/before/src/math.cjs",
+    "bytes": 31,
+    "sha256": "3287c2099845184d0cb7949a08e88a646e51520fb82bb346cc71dc39850b751e"
+  },
+  {
+    "path": "third-party-licenses/React-LICENSE.txt",
+    "bytes": 1088,
+    "sha256": "da6d3703ed11cbe42bd212c725957c98da23cbff1998c05fa4b3d976d1a58e93"
+  },
+  {
+    "path": "third-party-licenses/Vite-LICENSE.md",
+    "bytes": 110976,
+    "sha256": "b1d741c26b53de1bbc0d4d7d3365b79888f9fe511527544a8a7b8e24dec43147"
+  },
+  {
+    "path": "tools/bootstrap-windows.ps1",
+    "bytes": 2900,
+    "sha256": "b7829f8287cee3a5333e3d6dc138907411b09067861fc1ba38b279943d62882d"
+  },
+  {
+    "path": "tools/capture-docs.mjs",
+    "bytes": 10425,
+    "sha256": "023c4ccca45a9c95c374dee47eda0838e077dd09411f2d891f30c75c636ce178"
+  },
+  {
+    "path": "vscode-blackhole/.vscodeignore",
+    "bytes": 86,
+    "sha256": "10e8632be1fbf48c0f84b8fdaa6d7ab2d52dc249ee2b12a3c222318573ac4ac2"
+  },
+  {
+    "path": "vscode-blackhole/README.md",
+    "bytes": 3278,
+    "sha256": "ca41168d3b73c9d810672de199c5a7cf5cb60a2db07cf531d0cb0b4d0df0d71e"
+  },
+  {
+    "path": "vscode-blackhole/package-lock.json",
+    "bytes": 149642,
+    "sha256": "47eea361fc54eed1b6872b5ed9331f5692b2382ffe0a700331bee1fc273987d8"
+  },
+  {
+    "path": "vscode-blackhole/package.json",
+    "bytes": 7772,
+    "sha256": "a2a0fc05c5bbc7c7a8fa31f57c4f6100f0eb5b029ee8f9e34f6131fda02479c6"
+  },
+  {
+    "path": "vscode-blackhole/resources/singularity-icon.png",
+    "bytes": 9522,
+    "sha256": "61bc9a161de58248288e6905425d7180f0624c2865007b97d763fdac12043a66"
+  },
+  {
+    "path": "vscode-blackhole/src/extension.ts",
+    "bytes": 61368,
+    "sha256": "de358cc7f02007a382212b089e6ec513ea1a8eeda4dbfa3ffd35317fbeb4978f"
+  },
+  {
+    "path": "vscode-blackhole/src/textUtils.ts",
+    "bytes": 3962,
+    "sha256": "76a996bc1490397cb299fba62f642fc7184e13077e19b6f181246e2d458bd15c"
+  },
+  {
+    "path": "vscode-blackhole/test/runTest.js",
+    "bytes": 895,
+    "sha256": "ab14b75c91be3685655473786c798a872765a049e29ef4b9837de39ee68978b9"
+  },
+  {
+    "path": "vscode-blackhole/test/suite/index.js",
+    "bytes": 11339,
+    "sha256": "4fa93351e1bbeb5201949a17d0e18d699f57b82f2317886f6ad9cf0b4c081f65"
+  },
+  {
+    "path": "vscode-blackhole/tsconfig.json",
+    "bytes": 264,
+    "sha256": "702f79bd16216183b867a5c2943f9dfd3db142f44017301a90a8d7b41460e480"
+  }
+]

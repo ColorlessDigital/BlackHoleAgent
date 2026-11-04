@@ -1,0 +1,13 @@
+{
+  "_comment": "P2-7: GGUF models are NOT committed (see root .gitignore). Document each local model here with URL + sha256 so any machine can reproduce the runtime. Place files in this folder or set llamaCppModelPath in Settings.",
+  "models": [
+    {
+      "name": "local-gguf",
+      "file": "<put-file-name-here.gguf>",
+      "sourceUrl": "",
+      "sha256": "",
+      "contextLimit": 8192,
+      "notes": "Default slot for activeModel llamacpp:local-gguf. Example: Qwen3-30B-Q4_K_M.gguf on 24GB VRAM with contextLimit 16384."
+    }
+  ]
+}

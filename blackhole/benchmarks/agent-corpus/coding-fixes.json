@@ -1,0 +1,78 @@
+{
+  "version": 1,
+  "name": "BlackHole deterministic coding-fix corpus",
+  "cases": [
+    {
+      "id": "math-clamp-boundary",
+      "description": "Fix a boundary bug in a small utility module.",
+      "changedFiles": ["src/math.js"],
+      "files": {
+        "package.json": "{\"type\":\"module\"}\n",
+        "src/math.js": "export function clamp(value, min, max) {\n  return Math.max(max, Math.min(value, max));\n}\n",
+        "src/math.test.js": "import test from 'node:test';\nimport assert from 'node:assert';\nimport { clamp } from './math.js';\n\ntest('clamp keeps values inside bounds', () => {\n  assert.strictEqual(clamp(5, 0, 10), 5);\n  assert.strictEqual(clamp(-1, 0, 10), 0);\n  assert.strictEqual(clamp(20, 0, 10), 10);\n});\n"
+      },
+      "operations": [
+        {
+          "type": "patch_file",
+          "path": "src/math.js",
+          "search": "return Math.max(max, Math.min(value, max));",
+          "replace": "return Math.max(min, Math.min(value, max));"
+        }
+      ],
+      "expected": {
+        "contains": {
+          "src/math.js": "Math.max(min"
+        },
+        "testTargets": ["src/math.test.js"]
+      }
+    },
+    {
+      "id": "slug-normalization",
+      "description": "Normalize duplicate separators in a text helper.",
+      "changedFiles": ["src/slug.js"],
+      "files": {
+        "package.json": "{\"type\":\"module\"}\n",
+        "src/slug.js": "export function toSlug(value) {\n  return String(value).trim().toLowerCase().replace(/\\s+/g, '-');\n}\n",
+        "src/slug.test.js": "import test from 'node:test';\nimport assert from 'node:assert';\nimport { toSlug } from './slug.js';\n\ntest('toSlug normalizes punctuation and repeated separators', () => {\n  assert.strictEqual(toSlug(' Hello,   BlackHole!! '), 'hello-blackhole');\n});\n"
+      },
+      "operations": [
+        {
+          "type": "patch_file",
+          "path": "src/slug.js",
+          "search": "return String(value).trim().toLowerCase().replace(/\\s+/g, '-');",
+          "replace": "return String(value).trim().toLowerCase().replace(/[^a-z0-9]+/g, '-').replace(/^-|-$/g, '');"
+        }
+      ],
+      "expected": {
+        "contains": {
+          "src/slug.js": "replace(/[^a-z0-9]+/g"
+        },
+        "testTargets": ["src/slug.test.js"]
+      }
+    },
+    {
+      "id": "multi-file-api-contract",
+      "description": "Update an API contract and its focused test together.",
+      "changedFiles": ["src/formatter.js", "src/formatter.test.js"],
+      "files": {
+        "package.json": "{\"type\":\"module\"}\n",
+        "src/formatter.js": "export function formatStatus(status) {\n  return status.toUpperCase();\n}\n",
+        "src/formatter.test.js": "import test from 'node:test';\nimport assert from 'node:assert';\nimport { formatStatus } from './formatter.js';\n\ntest('formatStatus includes stable prefix', () => {\n  assert.strictEqual(formatStatus('ready'), '[READY]');\n});\n"
+      },
+      "operations": [
+        {
+          "type": "patch_file",
+          "path": "src/formatter.js",
+          "search": "return status.toUpperCase();",
+          "replace": "return `[${String(status).toUpperCase()}]`;"
+        }
+      ],
+      "expected": {
+        "contains": {
+          "src/formatter.js": "`[${String(status).toUpperCase()}]`"
+        },
+        "testTargets": ["src/formatter.test.js"]
+      }
+    }
+  ]
+}

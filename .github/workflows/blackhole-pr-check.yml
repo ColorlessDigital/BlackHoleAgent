@@ -1,0 +1,36 @@
+name: BlackHole PR Check
+
+on:
+  pull_request:
+  workflow_dispatch:
+
+jobs:
+  blackhole-pr-check:
+    runs-on: windows-latest
+    defaults:
+      run:
+        working-directory: blackhole
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+      - uses: actions/setup-node@v4
+        with:
+          node-version: '24.21.0'
+          cache: npm
+          cache-dependency-path: |
+            blackhole/package-lock.json
+            blackhole/frontend/package-lock.json
+            vscode-blackhole/package-lock.json
+      - run: npm ci
+      - run: npm --prefix frontend ci
+      - run: npm --prefix ../vscode-blackhole ci
+      - run: npm audit --audit-level=high
+      - run: npm --prefix frontend audit --audit-level=high
+      - run: npm --prefix ../vscode-blackhole audit --audit-level=high
+      - run: npm run pr:check -- --skip-vsix
+      - uses: actions/upload-artifact@v4
+        if: always()
+        with:
+          name: blackhole-pr-check
+          path: blackhole/data/pr-checks/latest

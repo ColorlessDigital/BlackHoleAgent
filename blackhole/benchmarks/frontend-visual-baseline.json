@@ -1,0 +1,27 @@
+{
+  "name": "BlackHole frontend visual baseline",
+  "requiredSelectors": [
+    "#root",
+    ".titlebar",
+    ".dashboard",
+    ".brain-panel"
+  ],
+  "viewports": {
+    "desktop": {
+      "width": 1440,
+      "height": 900,
+      "minScreenshotBytes": 20000,
+      "minTextLength": 120,
+      "minButtonCount": 8,
+      "maxConsoleErrors": 0
+    },
+    "mobile": {
+      "width": 390,
+      "height": 844,
+      "minScreenshotBytes": 12000,
+      "minTextLength": 80,
+      "minButtonCount": 4,
+      "maxConsoleErrors": 0
+    }
+  }
+}

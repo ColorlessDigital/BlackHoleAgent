@@ -1,0 +1,38 @@
+# P1-4: single-runtime build. Only "llamacpp:*" is supported (see runtimeRouter.js).
+# Empty profile model ("") = inherit activeModel. Only set an override when a
+# second local GGUF endpoint exists. contextLimit 8192 default; 16384 allowed
+# on 24GB+ VRAM (set per-profile contextLimit + llamaCppBatch accordingly).
+profiles:
+  autonomous-coder:
+    activeModel: llamacpp:local-gguf
+    contextLimit: 8192
+    maxTokens: 4096
+    temperature: 0.2
+    selfHealingMaxCycles: 4
+    agentModelRoutingEnabled: true
+    agentModelProfiles:
+      general:
+        model: ""
+        contextLimit: 8192
+        maxTokens: 4096
+        temperature: 0.2
+      planner:
+        model: ""
+        contextLimit: 8192
+        maxTokens: 4096
+        temperature: 0.2
+      coder:
+        model: ""
+        contextLimit: 8192
+        maxTokens: 4096
+        temperature: 0.15
+      verifier:
+        model: ""
+        contextLimit: 8192
+        maxTokens: 2048
+        temperature: 0.05
+      summarizer:
+        model: ""
+        contextLimit: 8192
+        maxTokens: 2048
+        temperature: 0.1
