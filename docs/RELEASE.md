@@ -6,6 +6,16 @@ Release tag: `v1.0.0-stabilized.13`.
 This distributes the existing `go-stabilized-13` Windows x64 build. It is not a
 new binary rebuild or a claim of production readiness.
 
+## English Documentation Update
+
+The default README, project site, guides and demo images on
+[main](https://github.com/ColorlessDigital/BlackHoleAgent) are now in English.
+Use the additional
+[English source snapshot](https://github.com/ColorlessDigital/BlackHoleAgent/releases/download/v1.0.0-stabilized.13/BlackHoleAgent-source-english-v1.0.0-stabilized.13.zip)
+and `SHA256SUMS-English.txt` for this documentation update. The original tag,
+source snapshot, executable assets and their checksum files remain unchanged.
+This is documentation localization, not a new application build.
+
 ## Downloads
 
 - `blackhole.exe`: portable launcher; no setup installation required.

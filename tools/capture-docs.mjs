@@ -13,10 +13,10 @@ const frontend = path.resolve(option('frontend', path.join(root, 'blackhole/fron
 const output = path.resolve(option('output', path.join(root, 'docs/images')));
 const modules = createRequire(option('modules', path.join(root, 'blackhole/package.json')));
 const { chromium } = modules('playwright');
-const report = { source: 'Unmodified BlackHole built frontend with scripted API/SSE fixtures', liveModel: false, personalData: false, pages: [], errors: [], blockedExternalHosts: [] };
+const report = { source: 'Unmodified BlackHole built frontend with scripted API/SSE fixtures', interfaceLanguage: 'en', scriptedContentLanguage: 'en', liveModel: false, personalData: false, pages: [], errors: [], blockedExternalHosts: [] };
 fs.mkdirSync(output, { recursive: true });
 const fixtureCode = fs.readFileSync(path.join(root, 'examples/multi-file/after/src/cart.cjs'), 'utf8');
-const checkpoint = { sessionId: 'public-demo', state: 'STOPPED', workspaceRoot: 'demo/multi-file', userGoal: 'Fix three modules without changing tests.', nextRecommendedAction: '검증 단계부터 재개' };
+const checkpoint = { sessionId: 'public-demo', state: 'STOPPED', workspaceRoot: 'demo/multi-file', userGoal: 'Fix three modules without changing tests.', nextRecommendedAction: 'Resume from verification' };
 const server = http.createServer((req, res) => {
   const requested = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
   const file = path.resolve(frontend, `.${requested === '/' ? '/index.html' : requested}`);
@@ -29,7 +29,7 @@ await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
 const origin = `http://127.0.0.1:${server.address().port}`;
 const browser = await chromium.launch({ headless: true, executablePath: option('browser', undefined) });
 try {
-  const page = await browser.newPage({ viewport: { width: 1600, height: 1000 }, deviceScaleFactor: 1, locale: 'ko-KR', timezoneId: 'Asia/Seoul' });
+  const page = await browser.newPage({ viewport: { width: 1600, height: 1000 }, deviceScaleFactor: 1, locale: 'en-US', timezoneId: 'UTC' });
   page.on('pageerror', error => report.errors.push(error.message));
   page.on('console', event => {
     if (event.type() === 'error' && !(event.text() === 'Failed to load resource: net::ERR_FAILED' && report.blockedExternalHosts.length)) report.errors.push(event.text());
@@ -58,7 +58,7 @@ try {
     await route.fulfill({ json: result });
   });
   await page.addInitScript(({ origin }) => {
-    localStorage.setItem('bh_lang', 'ko');
+    localStorage.setItem('bh_lang', 'en');
     window.blackhole = { getApiConfig: async () => ({ baseUrl: origin, token: 'public-ui-fixture' }) };
     window.EventSource = class extends EventTarget {
       constructor() { super(); queueMicrotask(() => this.dispatchEvent(new Event('open'))); }
@@ -86,28 +86,29 @@ try {
   const send = event => page.evaluate(event => window.__docsSend(event), event);
   const screenshot = async name => {
     await page.waitForTimeout(250);
+    assert.equal(/[\uac00-\ud7a3]/u.test(await page.locator('body').innerText()), false, `Non-English UI text in ${name}`);
     await page.screenshot({ path: path.join(output, `${name}.png`), animations: 'disabled' });
     report.pages.push({ name, viewport: { width: 1600, height: 1000 } });
   };
   await page.locator('.tree-node').filter({ hasText: 'src' }).first().click();
   await page.locator('.tree-node').filter({ hasText: 'cart.cjs' }).click();
-  await page.locator('.chat-textarea').fill('math.cjs, cart.cjs, label.cjs의 오류를 수정해줘. 테스트와 package.json은 변경하지 말고 검증 결과를 알려줘.');
+  await page.locator('.chat-textarea').fill('Fix math.cjs, cart.cjs and label.cjs. Keep the tests and package.json unchanged, then report the verification results.');
   await page.locator('.chat-textarea').press('Enter');
   await page.waitForFunction(() => window.__docsStreamVersion === 1);
-  await send({ type: 'state_change', state: 'PLAN', payload: { summary: '3개 구현 파일 확인, 테스트 변경 금지' } });
-  await send({ type: 'status', phase: 'PLAN', status: '작업 범위 확인: 구현 3개 파일', timestamp: 1700000000000 });
-  await send({ type: 'chunk', text: '3개 구현 파일과 테스트를 확인했습니다. 구현 파일만 수정하고 기존 테스트로 검증하겠습니다.\n\n' });
+  await send({ type: 'state_change', state: 'PLAN', payload: { summary: 'Inspect three implementation files; preserve the tests.' } });
+  await send({ type: 'status', phase: 'PLAN', status: 'Scope confirmed: three implementation files', timestamp: 1700000000000 });
+  await send({ type: 'chunk', text: 'I reviewed the three modules and their tests. I will change only the implementation files and verify them with the existing tests.\n\n' });
   await screenshot('demo-plan');
   await send({ type: 'state_change', state: 'EXECUTE', payload: { tool: 'write_file', path: 'src/cart.cjs' } });
   await send({ type: 'tool_start', tool: 'write_file', params: { path: 'src/cart.cjs' } });
-  await send({ type: 'status', phase: 'EXECUTE', status: '수량이 반영되도록 장바구니 합계 수정 중', timestamp: 1700000001000 });
-  await send({ type: 'chunk', text: '수정 대상\n• math.cjs: 덧셈 연산\n• cart.cjs: 가격 × 수량 합산\n• label.cjs: 대문자 표기\n\n' });
+  await send({ type: 'status', phase: 'EXECUTE', status: 'Updating the cart total to include item quantities', timestamp: 1700000001000 });
+  await send({ type: 'chunk', text: 'Implementation changes\n- math.cjs: add the two inputs\n- cart.cjs: sum price multiplied by quantity\n- label.cjs: convert the label to uppercase\n\n' });
   await screenshot('demo-working');
   await send({ type: 'tool_end', tool: 'write_file', result: { ok: true } });
   await send({ type: 'state_change', state: 'VERIFY', payload: { command: 'node --test check.test.cjs' } });
-  await send({ type: 'status', phase: 'VERIFY', status: '기존 테스트로 변경 결과 검증 중', timestamp: 1700000002000 });
+  await send({ type: 'status', phase: 'VERIFY', status: 'Verifying the changes with the existing tests', timestamp: 1700000002000 });
   await send({ type: 'terminal_log', log: '> node --test check.test.cjs\n✔ add\n✔ total\n✔ label\nTests: 3 passed, 0 failed (scripted UI fixture)' });
-  await send({ type: 'chunk', text: '검증 결과: 3개 테스트 통과.\n테스트 파일과 package.json은 변경하지 않았습니다.\n\n※ 이 화면의 응답과 실행 이벤트는 설명용 시나리오 데이터입니다.' });
+  await send({ type: 'chunk', text: 'Verification: 3 tests passed.\nThe tests and package.json are unchanged.\n\nThis response and the execution events are scripted documentation fixtures, not live model output.' });
   await send({ type: 'checkpoint', checkpoint: { ...checkpoint, state: 'COMPLETE' } });
   await send({ type: 'end', outcome: { status: 'completed', reason: 'Scripted illustration completed' } });
   await page.evaluate(() => window.__docsFinish());
@@ -115,14 +116,14 @@ try {
   await page.locator('.tree-node').filter({ hasText: 'src' }).first().click();
   await page.locator('.tree-node').filter({ hasText: 'cart.cjs' }).click();
   await screenshot('overview');
-  await page.getByRole('button', { name: '실행 타임라인', exact: true }).click();
+  await page.getByRole('button', { name: 'Execution Timeline', exact: true }).click();
   await screenshot('timeline');
   await page.getByRole('button', { name: 'Agent Chat', exact: true }).click();
-  await page.locator('.chat-textarea').fill('완료된 수정은 유지하고 검증 단계부터 이어서 진행해줘.');
+  await page.locator('.chat-textarea').fill('Keep the completed edits and continue from the verification checkpoint.');
   await page.locator('.chat-textarea').press('Enter');
   await page.waitForFunction(() => window.__docsStreamVersion === 2);
   await send({ type: 'checkpoint', checkpoint });
-  await send({ type: 'recovery', reason: 'request_timeout', message: '설명용 timeout 이벤트: 체크포인트를 확인한 뒤 재개할 수 있습니다.', error: 'Scripted response timeout (no provider request)', checkpoint, checkpointAvailable: true });
+  await send({ type: 'recovery', reason: 'request_timeout', message: 'Scripted timeout: review the checkpoint before resuming.', error: 'Scripted response timeout (no provider request)', checkpoint, checkpointAvailable: true });
   await send({ type: 'end', outcome: { status: 'stopped', reason: 'Scripted timeout illustration' } });
   await page.evaluate(() => window.__docsFinish());
   await page.locator('.recovery-banner').waitFor();

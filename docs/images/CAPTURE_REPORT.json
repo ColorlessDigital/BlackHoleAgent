@@ -1,5 +1,7 @@
 {
   "source": "Unmodified BlackHole built frontend with scripted API/SSE fixtures",
+  "interfaceLanguage": "en",
+  "scriptedContentLanguage": "en",
   "liveModel": false,
   "personalData": false,
   "pages": [

@@ -1,81 +1,91 @@
-# BlackHole 시연 가이드
+# BlackHole Demo Guide
 
-이 문서의 프롬프트·로그·화면은 공개 설명용 예제입니다. 개인 대화나 키를 복사한 것이 아닙니다.
-스크린샷/GIF는 실제 프론트엔드에 **정해진 가상 API/SSE 이벤트**를 넣어 촬영했습니다.
-이 시연 이미지가 모델의 실제 해결 성공률을 증명하지는 않습니다.
+Prompts, responses, logs and screenshots in this guide are public illustrations,
+not copied personal conversations. The images and GIF use the real frontend with
+**scripted API/SSE fixtures**. They do not establish live model performance.
 
-## 1. 다중 파일 수정
+## 1. Multi-File Editing
 
-### 예제와 기대 동작
+### Fixture and Expected Behavior
 
-`examples/multi-file/before`와 `after`는 동일한 테스트와 package.json을 사용합니다.
+`examples/multi-file/before` and `after` use identical tests and package.json files.
 
-| 파일 | 수정 전 문제 | 수정 후 기대 동작 |
+| File | Deliberate bug | Expected behavior |
 |---|---|---|
-| `src/math.cjs` | 두 수를 빼고 있음 | 두 수의 합 |
-| `src/cart.cjs` | 수량을 무시함 | 가격 × 수량의 합 |
-| `src/label.cjs` | 소문자로 표시 | 대문자로 표시 |
+| `src/math.cjs` | Subtracts the inputs | Adds the inputs |
+| `src/cart.cjs` | Ignores item quantities | Sums price multiplied by quantity |
+| `src/label.cjs` | Produces lowercase | Produces uppercase |
 
-저장소 최상위에서 모델 없이 재현할 수 있습니다.
+Reproduce the fixture without a model, from the repository root:
 
 ```powershell
 node --test examples/multi-file/before/check.test.cjs
-# 의도된 결과: 실패 3개, 종료 코드 1
+# Intentional result: 3 failures, exit code 1
 node --test examples/multi-file/after/check.test.cjs
-# 기대 결과: 통과 3개, 종료 코드 0
+# Expected result: 3 passes, exit code 0
 ```
 
-### 실제 에이전트로 시연하기
+### Try It with an Actual Agent
 
-1. `before` 전체를 별도 임시 작업 폴더에 복사합니다. 원본 비교용 before/after 폴더는 유지합니다.
-2. 앱에서 복사한 폴더를 작업공간으로 지정하고, 로컬 GGUF 또는 사용 가능한 공급자를 선택합니다.
-3. 아래 요청을 보냅니다. 기존 승인 UI가 나타나면 도구·대상을 확인하고 직접 결정합니다.
-4. 완료 후 원본 테스트/package.json이 그대로인지, 실제 Node 테스트가 통과했는지 독립적으로 확인합니다.
+1. Copy the entire `before` directory to a separate temporary workspace. Preserve
+   the original before/after examples for comparison.
+2. Select that workspace and an available local GGUF or provider model in the app.
+3. Send the request below. If an existing approval prompt appears, inspect the
+   tool and target and make your own decision.
+4. Independently check that the tests/package.json are unchanged and run the
+   original tests to verify the implementation.
 
 ```text
-src/math.cjs, src/cart.cjs, src/label.cjs의 오류를 수정해줘.
-check.test.cjs와 package.json은 변경하지 마.
-기존 테스트를 실행하고 수정 이유와 실제 검증 결과를 알려줘.
+Fix src/math.cjs, src/cart.cjs and src/label.cjs.
+Do not change check.test.cjs or package.json.
+Run the existing tests and report the edits and actual verification results.
 ```
 
-확인할 것: 수정 범위, 도구의 성공/실패, 실제 테스트 종료 코드, 최종 답변의 근거.
-테스트 통과를 말로만 보고한 것과 실제 실행 결과를 구분하세요. 모델·하드웨어별 결과는 달라질 수 있습니다.
+Inspect the changed files, tool outcomes, real test exit code and evidence in the
+answer. A claim that tests passed is not itself a test result. Outcomes depend
+on the selected model and execution environment.
 
-![다중 파일 수정과 검증을 설명하는 실제 UI 기반 가상 시연](images/overview.png)
+![Actual BlackHole UI with a scripted public multi-file task](images/overview.png)
 
-## 2. 진행 상태와 실패 복구
+## 2. Progress and Failure Recovery
 
-이미지의 timeout은 공급자 장애를 실제로 일으킨 것이 아니라 주입한 설명용 이벤트입니다.
-실제 서비스 장애를 재현할 때 네트워크를 끊거나 키를 공개할 필요는 없습니다.
+The timeout in this screenshot is an injected documentation event, not a real
+provider outage. You do not need to expose a credential or disrupt a real
+network connection to reproduce the UI illustration.
 
-![실패 원인과 체크포인트를 표시하는 복구 UI](images/recovery.png)
+![Scripted timeout reason and recovery checkpoint](images/recovery.png)
 
-실제 작업에서 확인할 순서:
+For an actual interrupted task:
 
-1. 상태/heartbeat와 마지막 이벤트를 확인합니다. 느린 추론과 명시적 오류를 구분합니다.
-2. 오류의 공급자·모델·원인·부분 출력 여부와 체크포인트 존재를 확인합니다.
-3. 인증·모델 가용성·출력 한도·로컬 환경 등 해당 원인을 해결합니다.
-4. 재개 대상을 확인하고 재개합니다. 완료된 파일과 검증 결과를 다시 확인합니다.
+1. Inspect progress, heartbeats and the last event. Distinguish slow inference
+   from an explicit failure.
+2. Check the provider, model, cause, partial-output state and checkpoint availability.
+3. Address the actual cause: authentication, availability, limits or local setup.
+4. Confirm the checkpoint, resume, and inspect the resulting files and tests again.
 
-외부 명령의 부분 실행, 디스크 손상, 모든 네트워크 실패의 자동 복구 또는 exactly-once 실행을
-보장하지 않습니다. 출력 한도를 늘리면 사용량이 증가할 수 있고 공급자 상한도 그대로 적용됩니다.
+This does not guarantee automatic recovery from every error, disk corruption or
+exactly-once external execution. Increasing an output limit can increase usage;
+provider limits still apply.
 
-## 3. 긴 대화와 큰 작업공간
+## 3. Long Conversations and Larger Workspaces
 
 ```text
-먼저 지정한 패키지의 구조와 기존 테스트만 확인해줘.
-목표와 수정 범위를 유지하면서 작업하고, 무관한 프로젝트는 검증하지 마.
-중간에 중단되면 현재 상태와 재개할 체크포인트를 알려줘.
+Inspect only the specified package and its existing tests first.
+Keep the goal and edit scope intact; do not validate unrelated projects.
+If interrupted, report the current state and the checkpoint to resume from.
 ```
 
-문맥 사용량·압축·상태 이벤트와 실제 수정 파일을 관찰합니다. 드라이브 전체를 자동으로 모두
-인덱싱하는 방식은 아니며 배경 스캔에 파일/깊이/시간 예산이 있습니다. 명시적 파일 접근과는 별개입니다.
-실제 장시간 안정성을 평가하려면 같은 빌드·모델·설정·저장소를 고정하고 최초 실패도 기록해야 합니다.
-이 페이지는 그 평가를 새로 수행했다는 보고서가 아닙니다.
+Observe context use, compaction, status events and actual changes. Background
+indexing has file/depth/time budgets; it does not index an entire drive without
+limits. This is separate from explicitly requested file access.
 
-## 이미지 재현
+To measure durability, fix the build, model, configuration and repository, and
+retain original failures as well as successful retries. This guide is not a new
+long-running or large-repository benchmark report.
 
-프론트를 빌드하고 Playwright Chromium을 준비한 뒤 최상위 폴더에서 실행합니다.
+## Reproduce the Images
+
+Build the frontend and prepare Playwright Chromium, then run from the source root:
 
 ```powershell
 Set-Location blackhole
@@ -85,9 +95,11 @@ Set-Location ..
 node tools/capture-docs.mjs
 ```
 
-`docs/images`에 PNG와 CAPTURE_REPORT.json을 생성합니다. 스크립트는 headless 브라우저에서
-가상 API/SSE만 사용하고 실제 키·사용자 data·모델 공급자에 접근하지 않습니다. 프론트의 외부
-리소스 요청은 차단합니다. 사용자 데스크톱을 캡처하거나 조작하지 않습니다.
+The script creates English PNGs and CAPTURE_REPORT.json under `docs/images`.
+It uses a headless browser with fake API/SSE data, blocks external frontend
+requests, and does not read real credentials, user data or model providers.
+It does not capture or manipulate the user's desktop.
 
-GIF는 계획 → 수정 → 검증 PNG를 순서대로 인코딩한 설명용 루프입니다. 별도의 실제 화면 녹화나
-시간 측정이 아닙니다. 화면을 다시 촬영했다면 GIF도 같은 프레임으로 다시 만들어야 합니다.
+The GIF encodes the planning, editing and verification PNGs in sequence. It is
+not a real inference recording or timing measurement. Regenerate it from the
+same frames when updating the screenshots.

@@ -37,7 +37,10 @@
     "demo": "docs/DEMO.md",
     "validation": "docs/PRESENTATION_VALIDATION.json",
     "scriptedScreenshots": true,
-    "remotePublished": false
+    "remotePublished": false,
+    "documentationLanguage": "en",
+    "screenshotLocale": "en-US",
+    "localizedAt": "2026-11-04T14:13:37.065Z"
   },
   "publication": {
     "repository": "https://github.com/ColorlessDigital/BlackHoleAgent",

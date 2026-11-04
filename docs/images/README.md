@@ -3,6 +3,8 @@
 These images explain BlackHole; they are not personal screenshots or live
 model benchmark evidence. All visible workspaces, requests, model labels,
 responses, errors and logs are hand-authored public demonstration fixtures.
+The interface and scripted content are captured in English (`en-US`); changing
+the isolated browser locale does not change a user's saved application language.
 
 | Asset | Source |
 |---|---|
