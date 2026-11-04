@@ -158,6 +158,8 @@ does not certify Linux/macOS releases.
 
 ## License and Public Scope
 
+Copyright 2026 KGE7
+
 Apache-2.0: [LICENSE](LICENSE), [NOTICE](NOTICE). Dependencies, assets and marks
 retain their respective terms; see [THIRD_PARTY.md](THIRD_PARTY.md).
 
