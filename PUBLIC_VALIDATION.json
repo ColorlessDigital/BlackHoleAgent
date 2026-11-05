@@ -1,167 +1,164 @@
 {
-  "checkedAt": "2026-11-04T09:46:58.936Z",
+  "schemaVersion": 2,
+  "checkedAt": "2026-11-05T11:47:56.032Z",
+  "sourceBaseline": "stabilized31",
+  "publicSourceHash": "6d5739db541728d6f5638e43582398a55c3bc2d758b77d553a6c925686a17dc3",
+  "scope": "Fresh official-runtime bootstrap/npm ci and source checks on the publication Windows machine; not clean-Windows VM or live-model reruns.",
   "cleanBootstrapAndNpmCi": true,
+  "node": "24.22.2",
+  "electron": "44.10.2",
+  "builder": "26.15.3",
   "checks": [
     {
-      "name": "backend-tests",
+      "name": "backend",
+      "ok": true,
       "exitCode": 0,
-      "ok": true
+      "elapsedMs": 15018
     },
     {
       "name": "frontend-tests",
+      "ok": true,
       "exitCode": 0,
-      "ok": true
+      "elapsedMs": 574
     },
     {
       "name": "backend-syntax",
+      "ok": true,
       "exitCode": 0,
-      "ok": true
+      "elapsedMs": 6986
     },
     {
       "name": "workspace-rules",
+      "ok": true,
       "exitCode": 0,
-      "ok": true
+      "elapsedMs": 366
     },
     {
       "name": "frontend-lint",
+      "ok": true,
       "exitCode": 0,
-      "ok": true
+      "elapsedMs": 5638
+    },
+    {
+      "name": "frontend-types",
+      "ok": true,
+      "exitCode": 0,
+      "elapsedMs": 1913
     },
     {
       "name": "frontend-build",
+      "ok": true,
       "exitCode": 0,
-      "ok": true
+      "elapsedMs": 2766
     },
     {
       "name": "runtime-prepare",
+      "ok": true,
       "exitCode": 0,
-      "ok": true
+      "elapsedMs": 1438
     },
     {
       "name": "extension-package",
+      "ok": true,
       "exitCode": 0,
-      "ok": true
+      "elapsedMs": 5295
+    },
+    {
+      "name": "release-metadata",
+      "ok": true,
+      "exitCode": 0,
+      "elapsedMs": 391
     },
     {
       "name": "release-check",
+      "ok": true,
       "exitCode": 0,
-      "ok": true
+      "elapsedMs": 55061
     }
   ],
-  "backendTests": 404,
-  "frontendTests": 10,
-  "extensionHostE2E": "skipped",
+  "backend": {
+    "total": 508,
+    "passed": 507,
+    "skipped": 1,
+    "skipReason": "Native Windows file symlink privilege unavailable"
+  },
+  "frontend": {
+    "passed": 10
+  },
+  "releaseMetadata": {
+    "passed": 5
+  },
+  "extensionHostE2e": "not run",
   "liveProviderCallsDuringExport": false,
   "windowsReleaseRebuiltDuringExport": false,
-  "privacy": {
-    "knownStoredSecretsReadable": true,
-    "exactKnownSecretMatches": 0,
-    "patternCandidates": 0,
-    "userConfigAndKeysUnchanged": true
-  },
-  "warnings": [
-    "No public evidence of cross-PC installer trust or Linux build.",
-    "No private proof freshness file is included.",
-    "npm audit findings remain; versions were deliberately not upgraded by the cleanup."
-  ],
   "audits": [
     {
-      "project": "blackhole",
-      "status": 1,
+      "scope": "app",
       "vulnerabilities": {
         "info": 0,
         "low": 0,
-        "moderate": 17,
-        "high": 3,
-        "critical": 1,
-        "total": 21
-      },
-      "highOrCriticalPackages": [
-        {
-          "name": "body-parser",
-          "severity": "high",
-          "locations": [
-            "node_modules/body-parser"
-          ]
-        },
-        {
-          "name": "electron",
-          "severity": "high",
-          "locations": [
-            "node_modules/electron"
-          ]
-        },
-        {
-          "name": "proxy-addr",
-          "severity": "critical",
-          "locations": [
-            "node_modules/proxy-addr"
-          ]
-        },
-        {
-          "name": "undici",
-          "severity": "high",
-          "locations": [
-            "node_modules/node-gyp/node_modules/undici",
-            "node_modules/undici"
-          ]
-        }
-      ]
-    },
-    {
-      "project": "blackhole/frontend",
-      "status": 1,
-      "vulnerabilities": {
-        "info": 0,
-        "low": 0,
-        "moderate": 12,
+        "moderate": 6,
         "high": 0,
         "critical": 0,
-        "total": 12
-      },
-      "highOrCriticalPackages": []
+        "total": 6
+      }
     },
     {
-      "project": "vscode-blackhole",
-      "status": 1,
+      "scope": "frontend",
       "vulnerabilities": {
         "info": 0,
         "low": 0,
-        "moderate": 5,
-        "high": 4,
+        "moderate": 10,
+        "high": 0,
         "critical": 0,
-        "total": 9
-      },
-      "highOrCriticalPackages": [
-        {
-          "name": "@azure/identity",
-          "severity": "high",
-          "locations": [
-            "node_modules/@azure/identity"
-          ]
-        },
-        {
-          "name": "@azure/msal-node",
-          "severity": "high",
-          "locations": [
-            "node_modules/@azure/msal-node"
-          ]
-        },
-        {
-          "name": "markdown-it",
-          "severity": "high",
-          "locations": [
-            "node_modules/markdown-it"
-          ]
-        },
-        {
-          "name": "undici",
-          "severity": "high",
-          "locations": [
-            "node_modules/undici"
-          ]
-        }
-      ]
+        "total": 10
+      }
+    },
+    {
+      "scope": "extension",
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 3,
+        "high": 0,
+        "critical": 0,
+        "total": 3
+      }
+    },
+    {
+      "scope": "production",
+      "vulnerabilities": {
+        "info": 0,
+        "low": 0,
+        "moderate": 0,
+        "high": 0,
+        "critical": 0,
+        "total": 0
+      }
     }
+  ],
+  "packagedEvidence": "docs/validation/stabilized-31.json",
+  "historicalEvidence": "docs/validation/stabilized-30.json",
+  "privacy": {
+    "checkedAt": "2026-11-05T11:49:51.245Z",
+    "scope": "New public source plus unchanged build31 unpacked payload and executable/portable ZIP bytes. Compressed source archive is additionally extracted and rescanned before upload. Existing public Git author metadata and intended KGE7/upstream attribution are not new source secrets.",
+    "knownStoredCredentialsComparedInMemory": true,
+    "knownSecretCount": 3,
+    "filesScanned": 479,
+    "exactKnownSecretMatches": 0,
+    "unresolvedKeyPatternCandidates": 0,
+    "privatePathCandidates": 0,
+    "forbiddenSourcePaths": 0,
+    "userConfigAndKeysUnchanged": true,
+    "originalPrivateGitHistoryIncluded": false,
+    "newCommitUsesGitHubNoreply": true,
+    "statement": "No findings within the described checks; not a mathematical guarantee of absence of all possible sensitive data."
+  },
+  "warnings": [
+    "No clean-Windows install/upgrade or visible VS Code extension-host E2E was executed.",
+    "No private proof-runs/latest.json is exported; source release check reports the missing private freshness file as a warning.",
+    "Development Moderate advisories and optional native install-script warnings remain; production audit reports zero.",
+    "Self-signed build-PC trust is not public-CA identity or cross-PC installation evidence.",
+    "Model results belong to immutable build31; the 60-minute natural-GC run belongs to build30."
   ]
 }

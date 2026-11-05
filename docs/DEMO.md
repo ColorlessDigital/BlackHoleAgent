@@ -1,91 +1,99 @@
-# BlackHole Demo Guide
+# BlackHole Demo Guide: Stabilized 31
 
-Prompts, responses, logs and screenshots in this guide are public illustrations,
-not copied personal conversations. The images and GIF use the real frontend with
-**scripted API/SSE fixtures**. They do not establish live model performance.
+Images/GIF use the real build-31 frontend with scripted public API/SSE fixtures.
+They are interface illustrations, not recordings of a real model or timing
+measurements. Separate [validation summaries](validation/stabilized-31.json)
+describe actual seeded tasks without private transcripts.
 
 ## 1. Multi-File Editing
 
-### Fixture and Expected Behavior
-
-`examples/multi-file/before` and `after` use identical tests and package.json files.
-
-| File | Deliberate bug | Expected behavior |
-|---|---|---|
-| `src/math.cjs` | Subtracts the inputs | Adds the inputs |
-| `src/cart.cjs` | Ignores item quantities | Sums price multiplied by quantity |
-| `src/label.cjs` | Produces lowercase | Produces uppercase |
-
-Reproduce the fixture without a model, from the repository root:
+The hand-authored `examples/multi-file/before` and `after` fixtures preserve
+identical tests and metadata. From the repository root:
 
 ```powershell
 node --test examples/multi-file/before/check.test.cjs
-# Intentional result: 3 failures, exit code 1
+# Intentional: 3 failures, exit 1
 node --test examples/multi-file/after/check.test.cjs
-# Expected result: 3 passes, exit code 0
+# Expected: 3 passes, exit 0
 ```
 
-### Try It with an Actual Agent
-
-1. Copy the entire `before` directory to a separate temporary workspace. Preserve
-   the original before/after examples for comparison.
-2. Select that workspace and an available local GGUF or provider model in the app.
-3. Send the request below. If an existing approval prompt appears, inspect the
-   tool and target and make your own decision.
-4. Independently check that the tests/package.json are unchanged and run the
-   original tests to verify the implementation.
+Copy the whole before folder to an isolated workspace. Select it in the app and ask:
 
 ```text
 Fix src/math.cjs, src/cart.cjs and src/label.cjs.
-Do not change check.test.cjs or package.json.
-Run the existing tests and report the edits and actual verification results.
+Keep check.test.cjs and package.json unchanged.
+Run the existing tests and report the actual verification results.
 ```
 
-Inspect the changed files, tool outcomes, real test exit code and evidence in the
-answer. A claim that tests passed is not itself a test result. Outcomes depend
-on the selected model and execution environment.
+Inspect file changes, test/package hashes and an independent fresh-process test run.
+A model's claim is not verification. Outcome depends on the model and environment.
 
-![Actual BlackHole UI with a scripted public multi-file task](images/overview.png)
+![Scripted public multi-file task](images/overview.png)
 
-## 2. Progress and Failure Recovery
+## 2. Behavioral Verification Unavailable
 
-The timeout in this screenshot is an injected documentation event, not a real
-provider outage. You do not need to expose a credential or disrupt a real
-network connection to reproduce the UI illustration.
+Create a separate small workspace containing only a source implementation, with
+no test script or applicable existing test. Ask for an implementation fix.
 
-![Scripted timeout reason and recovery checkpoint](images/recovery.png)
+For supported source types, syntax success alone now leaves saved changes with
+`incomplete / behavioral_verification_unavailable`. This is not an assertion
+failure or a request to rewrite unrelated files. Supply a suitable behavioral
+check, then resume the saved checkpoint. The product does not force extra test
+files into a workspace just to claim completion.
 
-For an actual interrupted task:
+![Scripted unverified source changes and checkpoint](images/unverified.png)
 
-1. Inspect progress, heartbeats and the last event. Distinguish slow inference
-   from an explicit failure.
-2. Check the provider, model, cause, partial-output state and checkpoint availability.
-3. Address the actual cause: authentication, availability, limits or local setup.
-4. Confirm the checkpoint, resume, and inspect the resulting files and tests again.
+## 3. Failure and Repair
 
-This does not guarantee automatic recovery from every error, disk corruption or
-exactly-once external execution. Increasing an output limit can increase usage;
-provider limits still apply.
+The packaged model-free regression suite intentionally provides syntax-valid but
+behaviorally wrong JavaScript and immutable existing Node assertions. It verifies
+that a failed test leads to bounded repair and then a real test rerun.
 
-## 3. Long Conversations and Larger Workspaces
+With a prepared development Electron runtime, from `blackhole`:
 
-```text
-Inspect only the specified package and its existing tests first.
-Keep the goal and edit scope intact; do not validate unrelated projects.
-If interrupted, report the current state and the checkpoint to resume from.
+```powershell
+$release = '<complete-release-folder>'
+$label = 'behavior-demo-' + (Get-Date -Format 'yyyyMMdd-HHmmss')
+$env:ELECTRON_RUN_AS_NODE = $null
+$p = Start-Process -FilePath 'node_modules/electron/dist/electron.exe' -ArgumentList @(
+  'scripts/stability-behavior.cjs', "--release=$release", "--label=$label"
+) -WindowStyle Hidden -Wait -PassThru
+if ($p.ExitCode -ne 0) { throw 'Inspect data/diagnostics/<label>/report.json' }
 ```
 
-Observe context use, compaction, status events and actual changes. Background
-indexing has file/depth/time budgets; it does not index an entire drive without
-limits. This is separate from explicitly requested file access.
+The suite's model responses are scripted, but it uses the packaged executor and
+default VerificationEngine. Nine passing scenarios include correctly stopped
+unverified work; they do not mean nine normally completed coding tasks.
 
-To measure durability, fix the build, model, configuration and repository, and
-retain original failures as well as successful retries. This guide is not a new
-long-running or large-repository benchmark report.
+Actual live build31 tasks separately completed Go 8/8 and local 4B coding 3/3
+with immutable tests. They are small seeded tasks, not a universal benchmark.
 
-## Reproduce the Images
+## 4. Progress, Interruption and Resume
 
-Build the frontend and prepare Playwright Chromium, then run from the source root:
+![Scripted timeout and checkpoint illustration](images/recovery.png)
+
+Check cause, partial output, routed model/budget and checkpoint availability.
+Address the underlying provider/setup/verification issue before resuming.
+Do not replay a finished external effect blindly. Exactly-once external execution
+and automatic recovery from every failure are not guaranteed.
+
+![Scripted planning and verification timeline](images/timeline.png)
+
+Model-supplied reasoning is separate from the answer and is absent when the model
+does not supply it. The application does not invent reasoning for display.
+
+## 5. Conversations and Workspace Resources
+
+Background indexing has file/depth/time budgets. Four recent context engines are
+kept under strong cache ownership, with weak sharing for active callers. This is
+not a total-RAM limit or a restriction on explicit file access.
+
+Build30's historical natural-GC hour passed 553/553; no build31 hour is claimed.
+Keep package hashes, budgets and first failures separate when reproducing tests.
+
+## Reproduce Public Images
+
+Build the frontend and install the pinned Playwright headless browser if needed:
 
 ```powershell
 Set-Location blackhole
@@ -95,11 +103,6 @@ Set-Location ..
 node tools/capture-docs.mjs
 ```
 
-The script creates English PNGs and CAPTURE_REPORT.json under `docs/images`.
-It uses a headless browser with fake API/SSE data, blocks external frontend
-requests, and does not read real credentials, user data or model providers.
-It does not capture or manipulate the user's desktop.
-
-The GIF encodes the planning, editing and verification PNGs in sequence. It is
-not a real inference recording or timing measurement. Regenerate it from the
-same frames when updating the screenshots.
+Capture uses English fixture data, a headless browser, blocked external requests
+and no user credentials or desktop interaction. The GIF is a sequence of the same
+documented frames, not a real inference video. [Provenance](images/README.md).

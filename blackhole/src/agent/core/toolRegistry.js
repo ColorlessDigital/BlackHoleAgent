@@ -133,16 +133,19 @@ ToolRegistry.register({
   inputSchema: {
     type: 'object',
     properties: {
-      path: { type: 'string', description: 'File path to read' }
+      path: { type: 'string', description: 'File path to read' },
+      startLine: { type: 'number', description: 'Optional 1-based first line; use a range when earlier output was shortened.' },
+      lineCount: { type: 'number', description: 'Optional number of lines, 1 to 200. Small ranges retain exact source under context pressure.' }
     },
     required: ['path']
   },
   async execute(params, context) {
-    return readFile(params.path, { workspaceRoot: context.config?.workspaceRoot });
+    return readFile(params.path, { workspaceRoot: context.config?.workspaceRoot, startLine: params.startLine,
+      lineCount: params.lineCount, abortSignal: context.abortSignal });
   },
   summarizeForModel(result) {
     if (!result) return '[No result]';
-    return `[read_file completed]\nFile path: ${result.path || 'unknown'}\nContent:\n${result.content || ''}`;
+    return `[read_file completed]\nFile path: ${result.relativePath || result.path || 'unknown'}\nLines: ${result.startLine || 1}-${result.endLine ?? 'EOF'} of ${result.totalLines ?? 'unknown'}${result.hasMore ? ' (more lines available)' : ''}\nContent:\n${result.content || ''}`;
   },
   summarizeForUi(result) {
     return { type: 'read_file', path: result?.path, size: result?.content?.length };
@@ -163,7 +166,7 @@ ToolRegistry.register({
     required: ['path', 'content']
   },
   async execute(params, context) {
-    return writeFile(params.path, params.content, { workspaceRoot: context.config?.workspaceRoot });
+    return writeFile(params.path, params.content, { workspaceRoot: context.config?.workspaceRoot, abortSignal: context.abortSignal });
   },
   summarizeForModel(result) {
     if (!result) return '[No result]';
@@ -189,7 +192,7 @@ ToolRegistry.register({
     required: ['path', 'search', 'replace']
   },
   async execute(params, context) {
-    return patchFile(params.path, params.search, params.replace, { workspaceRoot: context.config?.workspaceRoot });
+    return patchFile(params.path, params.search, params.replace, { workspaceRoot: context.config?.workspaceRoot, abortSignal: context.abortSignal });
   },
   summarizeForModel(result) {
     if (!result) return '[No result]';
@@ -223,7 +226,7 @@ ToolRegistry.register({
   },
   async execute(params, context) {
     return patchLines(params.path, params.startLine, params.endLine, params.replacement, {
-      workspaceRoot: context.config?.workspaceRoot
+      workspaceRoot: context.config?.workspaceRoot, abortSignal: context.abortSignal
     });
   },
   summarizeForModel(result, params = {}) {

@@ -32,6 +32,11 @@ test('Windows packaging requires signing before embedding the executable in inst
   assert.deepEqual(pkg.build.win.signtoolOptions.signingHashAlgorithms, ['sha256']);
 });
 
+test('Windows install and uninstall do not import or remove machine trust certificates', () => {
+  const installer = fs.readFileSync(new URL('../build/installer.nsh', import.meta.url), 'utf8');
+  assert.doesNotMatch(installer, /Import-Certificate|X509Store|Cert:\\|Remove-Item|customInstall|customUninstall/i);
+});
+
 test('release parity requires matching source fingerprints even on the same Git commit', () => {
   const info = { gitSha: 'same', sourceHash: 'a', sourceHashAlgorithm: 'sha256-normalized-v1' };
   assert.deepEqual(compareSourceIdentity(info, { ...info }), []);

@@ -1,172 +1,163 @@
 # BlackHole
 
-**A local-first desktop coding agent that plans, edits files, and verifies changes with tests.**
+**A local-first desktop coding agent with file tools, behavioral verification, and recoverable task state.**
 
-BlackHole connects llama.cpp-based GGUF inference to development tools. Rather
-than only suggesting code in a chat, it can work with files and terminal commands,
-report execution state, and continue from checkpoints. OpenAI-compatible gateways
-and OpenCode Go are optional providers.
+BlackHole connects llama.cpp GGUF inference to a desktop development workflow:
+inspect files, implement changes, run existing checks, and report the evidence.
+OpenAI-compatible gateways and OpenCode Go are optional providers. BlackHole is
+an execution system around a selected model, not a model trained by this project.
 
-[Demo guide](docs/DEMO.md) · [GitHub Pages setup](docs/PUBLISHING.md) · [Developer handoff](blackhole/docs/WALKTHROUGH.md) · [License](LICENSE)
+**[Download stabilized.31](https://github.com/ColorlessDigital/BlackHoleAgent/releases/tag/v1.0.0-stabilized.31)** |
+[Project page](https://colorlessdigital.github.io/BlackHoleAgent/) |
+[Demo guide](docs/DEMO.md) | [Developer handoff](blackhole/docs/WALKTHROUGH.md)
 
-**[Windows development prerelease](https://github.com/ColorlessDigital/BlackHoleAgent/releases/tag/v1.0.0-stabilized.13)**
-· **[Project page](https://colorlessdigital.github.io/BlackHoleAgent/)**
+Windows x64 development prerelease. Model weights and API keys are not included.
+Use `blackhole.exe` for portable execution or `BlackHole-Setup.exe` for installation.
 
-Use the Release asset `blackhole.exe` for portable execution. GGUF weights must
-be downloaded separately. This is a development prerelease with known dependency
-audit findings. `BlackHole-Setup.exe` imports a self-signed CA into the machine
-certificate store; read the warnings before choosing Setup.
+![BlackHole desktop with public scripted example data](docs/images/overview.png)
 
-![BlackHole desktop: workspace files, agent conversation, code and execution logs](docs/images/overview.png)
+> **Real build-31 frontend, scripted public data.** Screenshots and the GIF
+> illustrate the interface; they are not live-model recordings or timing
+> benchmarks. No personal conversation, credential, or user desktop is shown.
 
-> **Real frontend, scripted public data.** These screenshots use the actual built
-> UI with controlled API/SSE fixtures. Responses and logs are illustrations, not
-> live model output or benchmark evidence. No personal conversation, credential,
-> user workspace or desktop screenshot was used.
+## What Changed in Build 31?
 
-<details>
-<summary>Watch the workflow GIF: scripted planning, editing and verification</summary>
+A successful syntax check is not a behavioral test. For supported source changes:
 
-![Scripted planning, editing and verification frames in the real BlackHole UI](docs/images/workflow-demo.gif)
+- Existing project test commands keep their runner, loader, and project scope.
+- Without a declared command, bounded discovery can find existing standalone Node tests.
+- Missing checks, zero executed tests, all-skipped suites, and recognized static-only
+  commands do not qualify as behavioral success.
+- Unavailable evidence stops as `incomplete / behavioral_verification_unavailable`.
+  Edits and the checkpoint remain saved; missing tests do not trigger source-repair loops.
+- Actual failing assertions continue through bounded repair and re-verification.
+- Verification children do not inherit Node's internal test-runner context.
 
-</details>
+This does not prove arbitrary requirements or the quality of a project's tests.
+Unknown successful project-declared test commands retain that evidence source.
+The application does not automatically invent tests or create extra files merely
+because a behavioral check is missing.
 
-## What Kind of Agent Is It?
+![Scripted illustration of saved changes with behavioral verification unavailable](docs/images/unverified.png)
 
-BlackHole is an **execution system around a selected model**, not a model trained
-by this project. It combines planning, tool execution, verification and reporting,
-with context management and explicit recovery state. It is under active
-development and does not guarantee automatic resolution of arbitrary tasks.
+## Capabilities
 
-| Capability | Scope |
+| Area | Current scope |
 |---|---|
-| Local GGUF | llama.cpp lifecycle, model selection, GPU/context/output settings |
-| Code work | Read and modify files, run terminal commands, validate a project |
-| Status and recovery | Progress, heartbeats, execution journal, checkpoints and resume |
-| Long conversations | Context budgeting, summarization and compaction |
-| Reasoning records | Model-supplied reasoning displayed separately from the answer |
-| External tools | Web tools, MCP integration and a companion VS Code extension |
-| Optional APIs | OpenAI-compatible gateways and OpenCode Go |
+| Local inference | llama.cpp GGUF lifecycle, configurable GPU/context/output settings |
+| Code work | File inspection and editing, terminal tools, scoped existing checks |
+| Recovery | Progress heartbeats, execution journal, checkpoints, explicit resume |
+| Long conversations | Routed context budgets, compaction, current-request evidence preservation |
+| Workspace memory | Four recently used context engines under strong LRU cache ownership; weak sharing for active callers |
+| Reasoning records | Model-supplied reasoning separate from visible answers |
+| Integrations | Web tools, MCP, companion VS Code extension, optional cloud providers |
 
-Local model inference runs on the PC. Selecting web tools, MCP services or cloud
-providers can involve external communication; not every feature is offline.
-Model licenses, provider access and usage charges apply independently.
+Four cached engines is not a RAM quota or a cap on active callers. Compiler
+temporaries and allocator RSS can still rise. Local inference runs on the PC;
+web tools, MCP services and cloud providers may communicate externally.
 
-## Demonstration Examples
+## Recorded Evidence, Not a General Benchmark
 
-### 1. Fix Bugs Across Multiple Files
+| Evidence | Result and scope |
+|---|---|
+| Maintainer's immutable build 31 | Backend 507 passed + 1 privilege-related skip, three consecutive runs; frontend 10/10 |
+| Completion regression fixtures | 9/9, including correct **unverified** stops; the same build-30 baseline passed 2/9 |
+| Real OpenCode Go tasks | 8/8: addition, empty-list mean, clamp, and a three-file task, each repeated twice |
+| Real local GGUF coding | Qwen3 4B, 3/3 implementation fixes with existing immutable tests |
+| Workspace retention control | 80 generated workspaces; bounded cache retention confirmed |
+| Historical build 30 only | Natural-GC 60-minute run: 553/553, including one intentional cancellation |
+
+The real build-31 tasks used the product's default verification engine, not a
+diagnostic replacement. The Go comparison used GLM 5.3 Flash with diagnostic
+context/output 8192. The GGUF coding cap was 4096. Saved settings were not changed.
+These are small seeded tasks, not arbitrary-repository success rates.
+
+[Build-31 evidence](docs/validation/stabilized-31.json) |
+[Historical build-30 evidence](docs/validation/stabilized-30.json) |
+[Fresh public-source checks](PUBLIC_VALIDATION.json) |
+[Release history](docs/HISTORY.md)
+
+The public-source checks are separately rerun after export; they are not the
+maintainer's live-model tests. Build 31 has no new 60-minute soak or 35B coding
+claim. Earlier failures remain historical failures.
+
+## Try a Multi-File Task
 
 ```text
 Fix src/math.cjs, src/cart.cjs and src/label.cjs.
 Keep check.test.cjs and package.json unchanged.
-Run the existing tests and explain the edits and actual verification results.
+Run the existing tests and report the actual verification results.
 ```
 
-The [example fixture](examples/multi-file) contains hand-authored before/after
-implementations with identical tests and package files. The before version fails
-three tests; the after version passes all three. This small reproduction is not
-proof that a selected model will solve the task. Follow the [demo guide](docs/DEMO.md#1-multi-file-editing)
-to test an agent in an isolated workspace.
+[Before/after examples](examples/multi-file) contain identical tests. Their
+hand-authored before version fails three tests and the after version passes
+three. They are reproducible fixtures, not evidence of live-model performance.
+See the [demo guide](docs/DEMO.md) for verification, recovery and unverified cases.
 
-### 2. Inspect a Failure and Resume from a Checkpoint
+<details>
+<summary>Scripted workflow GIF</summary>
 
-![Scripted timeout with its failure reason and recovery checkpoint](docs/images/recovery.png)
+![Scripted planning, editing and verification in the build-31 frontend](docs/images/workflow-demo.gif)
 
-Inspect the cause and available checkpoint, address the underlying issue, and
-explicitly resume. This does not promise automatic recovery from every failure
-or exactly-once execution of external side effects. [Recovery scope](docs/DEMO.md#2-progress-and-failure-recovery)
-
-### 3. Review the Execution Timeline
-
-![Planning, execution and verification events in the real timeline UI](docs/images/timeline.png)
-
-Review the process as well as the final answer: plans, tool results, verification
-and recovery events. Reasoning records are shown only when a model supplies them;
-the application does not invent missing reasoning for display.
+</details>
 
 ## Architecture
 
-![UI, agent core, local or optional remote models, tools, verification and recovery](docs/images/architecture.svg)
+![Models, tool execution, behavioral evidence and checkpoint recovery](docs/images/architecture.svg)
 
-| Path | Responsibility |
-|---|---|
-| `blackhole/src` | Electron app, API, agent, runtimes, tools and tests |
-| `blackhole/frontend` | React/Vite interface |
-| `blackhole/scripts`, `blackhole/build` | Checks, packaging, installer and signing |
-| `blackhole/benchmarks` | Evaluation manifests and fixtures |
-| `blackhole/.blackhole` | Source-controlled workspace settings, rules and prompts |
-| `vscode-blackhole` | Companion VS Code extension |
-| `docs` | Public site, images, demo and publishing guides |
+`blackhole/src` contains the Electron/backend agent and runtimes;
+`blackhole/frontend` is the React/TypeScript UI. `vscode-blackhole` is the
+companion extension. [Architecture and commands](blackhole/docs/WALKTHROUGH.md).
 
-## Start on Windows
+## Start from Source on Windows
 
-Keep the complete source tree together. From its root in PowerShell:
+From the complete repository root in PowerShell:
 
 ```powershell
 powershell -NoProfile -ExecutionPolicy Bypass -File tools/bootstrap-windows.ps1
-$env:Path = (Join-Path $PWD 'node-v24.21.0-win-x64') + ';' + $env:Path
+$env:Path = (Join-Path $PWD 'node-v24.22.2-win-x64') + ';' + $env:Path
 Set-Location blackhole
 npm run build:frontend
 npm start
 ```
 
-Bootstrap downloads the official Node 24.21.0 and llama.cpp b9553 Vulkan x64
-archives, verifies SHA-256, and runs `npm ci` for the application, frontend and
-extension using their lockfiles. Downloads and dependency installation require
-internet access. **No model or API key is included.**
-
-Download GGUF weights independently, then select the model path and workspace
-in Settings. Model size, quantization, RAM/VRAM and configuration determine
-whether a model fits and how quickly it runs. Enter provider credentials locally;
-never upload them in source, issues or screenshots. Development and packaged
-data locations differ, and OS-encrypted credentials are not portable between PCs.
-
-## Checks and Packaging
+Bootstrap downloads checksum-verified official Node 24.22.2 and llama.cpp b9553
+Vulkan x64 archives and installs the three lockfile-defined dependency trees.
+Internet is required for setup. Download GGUF weights separately and select an
+existing model path in Settings. Model size, quantization, RAM/VRAM and settings
+determine fit and speed. Enter provider keys locally, never in issues or source.
+OS-encrypted credentials are not portable by simply copying them to another PC.
 
 ```powershell
 npm test
 npm --prefix frontend test
-npm run check:backend
-npm run check:workspace-rules
 npm run release:check -- --skip-extension-e2e
 npm run build:windows
 ```
 
-Release checks have runtime/browser prerequisites. Extension-host E2E, visual
-checks and live-model evaluation are separate scopes. The diff step of
-`pr:check` needs a Git repository; source archives do not include `.git` history.
+Review [development and packaging](blackhole/docs/WALKTHROUGH.md) before building.
+The signing script provisions a development CA on the **build PC**. It is not a
+publicly trusted publisher identity. Build-31 Setup does **not** automatically
+import/remove trust-store certificates. Legacy builds 13/14 did; their warnings
+remain in [history](docs/HISTORY.md). [Certificate operations](blackhole/docs/ROOT_CA_OPERATIONS.md).
 
-**Recorded baseline:** a clean public-source install passed 404 backend tests,
-10 frontend tests, frontend build, extension packaging and release checks with
-extension-host E2E excluded. These are not general coding benchmark scores or
-proof of cross-PC trust, Linux compatibility or unattended durability.
-See [PUBLIC_VALIDATION.json](PUBLIC_VALIDATION.json) for scope and warnings.
+## Limits and Public Scope
 
-**Known findings remain:** dependency audits include Critical/High findings.
-Preparing or publishing this package does not resolve them. Review versions,
-exposure and impact before distributing or deploying it.
+This remains a development prerelease. Clean-Windows installation/upgrade,
+cross-PC credential setup, visible VS Code extension-host E2E, and Linux/macOS
+release validation are not certified. Development dependency advisories remain;
+consult the current [audits](PUBLIC_VALIDATION.json), not the archived build-13 totals.
 
-**Signing side effects:** the existing Windows build creates or uses a local
-self-signed CA/Publisher certificate and trusts the CA in `CurrentUser\Root`.
-The installer also performs certificate-store operations. This is not a public
-CA publisher identity. Read [the certificate guide](blackhole/docs/ROOT_CA_OPERATIONS.md),
-`blackhole/scripts/sign-release.ps1` and `blackhole/build/installer.nsh` first.
-No original developer private signing key is distributed.
+Public source includes tests, lockfiles, reproducible fixtures and build tools.
+It excludes installed dependencies, models, runtime data, keys, conversations,
+private raw diagnostics, developer signing keys and original private Git history.
+Public validation is a sanitized summary, not a dump of internal logs.
 
-Linux requires its own host, build and validation. This Windows source snapshot
-does not certify Linux/macOS releases.
-
-## License and Public Scope
+## License
 
 Copyright 2026 KGE7
 
-Apache-2.0: [LICENSE](LICENSE), [NOTICE](NOTICE). Dependencies, assets and marks
-retain their respective terms; see [THIRD_PARTY.md](THIRD_PARTY.md).
-
-The public tree includes source, tests, fixtures, build scripts and lockfiles.
-It excludes installed dependencies, runtime binaries, models, original private
-Git history, user configuration, credentials, conversations, raw diagnostics and
-developer certificates. Public technical summaries and author attribution remain.
-
-This documentation update does not change agent prompts, censorship or approval
-policy, runtime behavior, model settings or the previously published executables.
+Apache-2.0: [LICENSE](LICENSE), [NOTICE](NOTICE). Third-party licenses and marks
+remain separate: [THIRD_PARTY.md](THIRD_PARTY.md). No provider affiliation or
+endorsement is implied. Publication introduces no prompt censorship or approval
+policy changes.

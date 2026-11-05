@@ -1,14 +1,30 @@
-import test from 'node:test';
+import test, { after } from 'node:test';
 import assert from 'node:assert';
 import http from 'http';
 import https from 'https';
-import { isUrlAllowed } from './urlPolicy.js';
-import { HttpInspector } from './httpInspector.js';
-import { HtmlInspector } from './htmlInspector.js';
-import { Crawler } from './crawler.js';
-import { EvidenceStore } from './evidenceStore.js';
-import { SearchService } from './SearchService.js';
-import { DuckDuckGoProvider } from './providers/DuckDuckGoProvider.js';
+import fs from 'node:fs';
+import os from 'node:os';
+import path from 'node:path';
+import { listenLoopback } from '../testSupport/loopback.js';
+
+// Configure storage before loading modules that capture CONFIG_DIR at import time.
+const testData = fs.mkdtempSync(path.join(os.tmpdir(), 'bh-web-service-test-'));
+const previousData = process.env.BLACKHOLE_DATA_DIR;
+process.env.BLACKHOLE_DATA_DIR = testData;
+const { isUrlAllowed } = await import('./urlPolicy.js');
+const { HttpInspector } = await import('./httpInspector.js');
+const { HtmlInspector } = await import('./htmlInspector.js');
+const { Crawler } = await import('./crawler.js');
+const { EvidenceStore } = await import('./evidenceStore.js');
+const { SearchService } = await import('./SearchService.js');
+const { DuckDuckGoProvider } = await import('./providers/DuckDuckGoProvider.js');
+after(() => {
+  if (previousData === undefined) delete process.env.BLACKHOLE_DATA_DIR;
+  else process.env.BLACKHOLE_DATA_DIR = previousData;
+  const target = fs.realpathSync(testData), parent = fs.realpathSync(os.tmpdir());
+  assert.ok(target.startsWith(parent + path.sep));
+  fs.rmSync(target, { recursive: true, force: true });
+});
 
 test('urlPolicy - isUrlAllowed', async (t) => {
   await t.test('should allow any URL when webAllowedDomains is empty', () => {
@@ -97,7 +113,7 @@ test('HttpInspector, HtmlInspector, Crawler, and EvidenceStore integration with 
     }
   });
 
-  await new Promise((resolve) => server.listen(0, '127.0.0.1', resolve));
+  await listenLoopback(server);
   const port = server.address().port;
   const baseUrl = `http://127.0.0.1:${port}`;
 

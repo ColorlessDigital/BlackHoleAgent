@@ -82,9 +82,9 @@ function wrapWindowsCmd(command, args) {
 }
 
 function findNpmExecutable() {
-  const bundledNpm = path.join(BLACKHOLE_ROOT, 'node-v24.21.0-win-x64', 'npm.cmd');
+  const bundledNpm = path.join(BLACKHOLE_ROOT, 'node-v24.22.2-win-x64', 'npm.cmd');
   if (fs.existsSync(bundledNpm)) return bundledNpm;
-  const linuxBundledNpm = path.join(BLACKHOLE_ROOT, `node-v24.21.0-${process.platform}-${process.arch}`, 'bin', 'npm');
+  const linuxBundledNpm = path.join(BLACKHOLE_ROOT, `node-v24.22.2-${process.platform}-${process.arch}`, 'bin', 'npm');
   if (fs.existsSync(linuxBundledNpm)) return linuxBundledNpm;
   const resourceNpm = process.platform === 'win32'
     ? path.join(PROJECT_ROOT, 'resources', 'node-runtime', 'current', 'npm.cmd')
@@ -95,8 +95,8 @@ function findNpmExecutable() {
 
 function buildToolPath() {
   const candidates = [
-    path.join(BLACKHOLE_ROOT, 'node-v24.21.0-win-x64'),
-    path.join(BLACKHOLE_ROOT, `node-v24.21.0-${process.platform}-${process.arch}`, 'bin'),
+    path.join(BLACKHOLE_ROOT, 'node-v24.22.2-win-x64'),
+    path.join(BLACKHOLE_ROOT, `node-v24.22.2-${process.platform}-${process.arch}`, 'bin'),
     process.platform === 'win32'
       ? path.join(PROJECT_ROOT, 'resources', 'node-runtime', 'current')
       : path.join(PROJECT_ROOT, 'resources', 'node-runtime', 'current', 'bin')

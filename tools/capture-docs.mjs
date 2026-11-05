@@ -13,9 +13,10 @@ const frontend = path.resolve(option('frontend', path.join(root, 'blackhole/fron
 const output = path.resolve(option('output', path.join(root, 'docs/images')));
 const modules = createRequire(option('modules', path.join(root, 'blackhole/package.json')));
 const { chromium } = modules('playwright');
-const report = { source: 'Unmodified BlackHole built frontend with scripted API/SSE fixtures', interfaceLanguage: 'en', scriptedContentLanguage: 'en', liveModel: false, personalData: false, pages: [], errors: [], blockedExternalHosts: [] };
+const report = { source: 'Unmodified stabilized-31 BlackHole built frontend with scripted API/SSE fixtures', build: 31, interfaceLanguage: 'en', scriptedContentLanguage: 'en', liveModel: false, personalData: false, pages: [], errors: [], blockedExternalHosts: [] };
 fs.mkdirSync(output, { recursive: true });
 const fixtureCode = fs.readFileSync(path.join(root, 'examples/multi-file/after/src/cart.cjs'), 'utf8');
+let scenario = 'multi-file';
 const checkpoint = { sessionId: 'public-demo', state: 'STOPPED', workspaceRoot: 'demo/multi-file', userGoal: 'Fix three modules without changing tests.', nextRecommendedAction: 'Resume from verification' };
 const server = http.createServer((req, res) => {
   const requested = decodeURIComponent(new URL(req.url, 'http://localhost').pathname);
@@ -40,13 +41,14 @@ try {
     if (!url.pathname.startsWith('/api/')) { await route.continue(); return; }
     const endpoint = url.pathname.slice(4);
     let result = {};
-    if (endpoint === '/config') result = { activeModel: 'llamacpp:local-gguf', workspaceRoot: 'demo/multi-file', llamaCppModelPath: 'models/demo.gguf' };
-    else if (endpoint === '/workspace') result = { path: 'demo/multi-file' };
+    if (endpoint === '/config') result = { activeModel: 'llamacpp:local-gguf', workspaceRoot: `demo/${scenario}`, llamaCppModelPath: 'models/demo.gguf' };
+    else if (endpoint === '/workspace') result = { path: `demo/${scenario}` };
+    else if (endpoint === '/files' && scenario === 'unverified') result = { entries: [{ name: 'math.cjs', path: 'math.cjs' }] };
     else if (endpoint === '/files') result = { entries: [
       { name: 'src', path: 'src', isDir: true, childrenLoaded: true, children: ['math.cjs', 'cart.cjs', 'label.cjs'].map(name => ({ name, path: `src/${name}` })) },
       { name: 'check.test.cjs', path: 'check.test.cjs' }, { name: 'package.json', path: 'package.json' }
     ] };
-    else if (endpoint === '/files/read') result = { content: fixtureCode };
+    else if (endpoint === '/files/read') result = { content: scenario === 'unverified' ? 'exports.add = (a, b) => a + b;\n' : fixtureCode };
     else if (endpoint === '/chats') result = [];
     else if (endpoint === '/security/pending') result = { pending: [] };
     else if (endpoint === '/agent/checkpoints') result = { checkpoints: [checkpoint] };
@@ -128,6 +130,32 @@ try {
   await page.evaluate(() => window.__docsFinish());
   await page.locator('.recovery-banner').waitFor();
   await screenshot('recovery');
+  scenario = 'unverified';
+  await page.reload({ waitUntil: 'networkidle' });
+  await page.locator('.brain-panel').waitFor();
+  await page.evaluate(() => {
+    const label = document.createElement('div');
+    label.textContent = 'PUBLIC UI DEMO  /  SCRIPTED DATA  /  NO LIVE MODEL';
+    label.style.cssText = 'position:fixed;bottom:0;right:0;left:0;height:25px;z-index:99999;background:#e9f6ee;color:#164d34;text-align:center;font:600 11px/25px Consolas,monospace;letter-spacing:0';
+    document.body.append(label);
+  });
+  await page.locator('.tree-node').filter({ hasText: 'math.cjs' }).click();
+  await page.locator('.chat-textarea').fill('Fix the implementation and report whether its behavior was verified.');
+  await page.locator('.chat-textarea').press('Enter');
+  await page.waitForFunction(() => window.__docsStreamVersion === 1);
+  const unverifiedCheckpoint = { ...checkpoint, workspaceRoot: 'demo/unverified', state: 'FAIL', changedFiles: ['math.cjs'],
+    nextRecommendedAction: 'Provide and run an appropriate behavioral check before resuming.' };
+  await send({ type: 'state_change', state: 'VERIFY', payload: { message: 'Behavioral evidence unavailable', results: {
+    syntax: { ok: true, skipped: false }, test: { ok: false, skipped: true, failureKind: 'unverified',
+      reason: 'behavioral_verification_unavailable' } } } });
+  await send({ type: 'status', level: 'warning', status: 'Source changes saved; behavioral tests are unavailable. No source self-repair was started.' });
+  await send({ type: 'chunk', text: 'Source changes are saved, but behavior remains unverified.\nSyntax success is not a behavioral test. Provide an appropriate check before resuming.\n\nScripted public illustration; no live model request.' });
+  await send({ type: 'checkpoint', checkpoint: unverifiedCheckpoint });
+  await send({ type: 'recovery', reason: 'behavioral_verification_unavailable', message: 'Behavioral verification unavailable. Changes and checkpoint are preserved.', checkpoint: unverifiedCheckpoint, checkpointAvailable: true });
+  await send({ type: 'end', outcome: { status: 'incomplete', reason: 'behavioral_verification_unavailable' } });
+  await page.evaluate(() => window.__docsFinish());
+  await page.locator('.recovery-banner').waitFor();
+  await screenshot('unverified');
   assert.equal(report.errors.length, 0, report.errors.join('\n'));
   await page.close();
 } finally {

@@ -1,6 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import { resolveWorkspacePath, toWorkspaceRelative } from './workspaceManager.js';
+import { writeFileAtomic } from './atomicWrite.js';
+import { replaceTextBlock, replaceTextLines } from './textPatch.js';
 
 const DEFAULT_EXCLUDES = new Set([
   'node_modules',
@@ -99,51 +101,58 @@ export async function listDirectoryPage(targetPath = '.', options = {}) {
 }
 
 export async function readFile(targetPath, options = {}) {
+  options.abortSignal?.throwIfAborted();
   const workspaceRoot = options.workspaceRoot || '';
   const absolute = resolveWorkspacePath(targetPath, workspaceRoot);
   const stat = await fs.promises.stat(absolute);
   if (stat.size > 2 * 1024 * 1024) {
     throw new Error('Files larger than 2MB are not loaded by the preview reader.');
   }
-  const content = await fs.promises.readFile(absolute, 'utf-8');
+  const startLine = options.startLine === undefined ? 1 : Number(options.startLine);
+  const ranged = options.startLine !== undefined || options.lineCount !== undefined;
+  const lineCount = options.lineCount === undefined ? 80 : Number(options.lineCount);
+  if (!Number.isSafeInteger(startLine) || startLine < 1 || !Number.isSafeInteger(lineCount) || lineCount < 1 || lineCount > 200) {
+    throw new Error('read_file ranges require a positive integer startLine and lineCount between 1 and 200.');
+  }
+  const fullContent = await fs.promises.readFile(absolute, { encoding: 'utf8', ...(options.abortSignal ? { signal: options.abortSignal } : {}) });
+  const lines = fullContent.split('\n');
+  const endLine = ranged ? Math.min(lines.length, startLine + lineCount - 1) : lines.length;
+  const content = ranged ? lines.slice(startLine - 1, endLine).join('\n') : fullContent;
   return {
     path: absolute,
     relativePath: toWorkspaceRelative(absolute, workspaceRoot),
-    content
+    content,
+    startLine,
+    endLine: startLine > lines.length ? null : endLine,
+    totalLines: lines.length,
+    hasMore: ranged && endLine < lines.length
   };
 }
 
 export async function writeFile(targetPath, content, options = {}) {
+  options.abortSignal?.throwIfAborted();
   const workspaceRoot = options.workspaceRoot || '';
   const absolute = resolveWorkspacePath(targetPath, workspaceRoot);
   const parent = path.dirname(absolute);
   await fs.promises.mkdir(parent, { recursive: true });
-  await fs.promises.writeFile(absolute, content ?? '', 'utf-8');
+  await writeFileAtomic(absolute, content, { signal: options.abortSignal });
   return { path: absolute, relativePath: toWorkspaceRelative(absolute, workspaceRoot) };
 }
 
 export async function patchFile(targetPath, search, replace, options = {}) {
+  options.abortSignal?.throwIfAborted();
   const workspaceRoot = options.workspaceRoot || '';
   const absolute = resolveWorkspacePath(targetPath, workspaceRoot);
   const current = await fs.promises.readFile(absolute, 'utf-8');
-  if (!current.includes(search)) {
-    throw new Error('The search block does not exactly match the current file content.');
-  }
-  await fs.promises.writeFile(absolute, current.replace(search, replace), 'utf-8');
+  await writeFileAtomic(absolute, replaceTextBlock(current, search, replace), { signal: options.abortSignal });
   return { path: absolute, relativePath: toWorkspaceRelative(absolute, workspaceRoot) };
 }
 
 export async function patchLines(targetPath, startLine, endLine, replacement, options = {}) {
+  options.abortSignal?.throwIfAborted();
   const workspaceRoot = options.workspaceRoot || '';
   const absolute = resolveWorkspacePath(targetPath, workspaceRoot);
   const current = await fs.promises.readFile(absolute, 'utf-8');
-  const lines = current.split('\n');
-  const start = Number(startLine) - 1;
-  const end = Number(endLine) - 1;
-  if (!Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end < start || end >= lines.length) {
-    throw new Error(`Invalid line range: ${startLine}-${endLine}`);
-  }
-  lines.splice(start, end - start + 1, ...(replacement ?? '').split('\n'));
-  await fs.promises.writeFile(absolute, lines.join('\n'), 'utf-8');
+  await writeFileAtomic(absolute, replaceTextLines(current, startLine, endLine, replacement), { signal: options.abortSignal });
   return { path: absolute, relativePath: toWorkspaceRelative(absolute, workspaceRoot) };
 }

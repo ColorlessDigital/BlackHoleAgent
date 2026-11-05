@@ -556,6 +556,23 @@ test('Go pre-aborted requests and missing/unknown configuration never contact th
   assert.equal(fake.requests.length, 0);
 });
 
+test('Go ignores stale frames after the terminal event for each adapter', async t => {
+  for (const [model, terminal] of [
+    ['glm-5.3-flash', frame({ choices: [{ delta: { content: 'OK' } }] }) + frame('[DONE]')],
+    ['qwen3.8-max', frame({ type: 'content_block_delta', delta: { type: 'text_delta', text: 'OK' } }) + frame({ type: 'message_stop' })],
+    ['gpt-6-luna', frame({ type: 'response.output_text.delta', delta: 'OK' }) + frame({ type: 'response.completed' })],
+    ['gemini-4-argon', frame({ candidates: [{ content: { parts: [{ text: 'OK' }] }, finishReason: 'STOP' }] })]
+  ]) {
+    const fake = await serverFor(t, (_req, res) => {
+      res.setHeader('Content-Type', 'text/event-stream');
+      res.end(terminal + frame({ error: { message: 'stale error' } }) + 'data: invalid-json\n\n');
+    });
+    let text = '';
+    await new OpenCodeGoRuntime(config, fake).chatStream({ model, messages: conversation }, chunk => { text += chunk; });
+    assert.equal(text, 'OK');
+  }
+});
+
 test('Go request timeout stops a stalled stream', async t => {
   const fake = await serverFor(t, (_req, res) => { res.setHeader('Content-Type', 'text/event-stream'); res.flushHeaders(); });
   const runtime = new OpenCodeGoRuntime(config, fake);
@@ -669,18 +686,19 @@ test('Go cancellation during retry delay prevents any second request', async t =
   assert.equal(fake.requests.length, 1);
 });
 
-test('Go retry delay shares the original timeout and is not reported as user cancellation', async t => {
+test('Go skips backoff that cannot fit the deadline without losing the original provider error', async t => {
   const fake = await serverFor(t, (_req, res) => {
     res.setHeader('Content-Type', 'text/event-stream');
     res.end(frame({ error: { code: 'server_error', message: 'Failed' } }));
   });
   const runtime = new OpenCodeGoRuntime(config, fake);
-  runtime.timeoutMs = 50;
+  runtime.timeoutMs = 500;
   await assert.rejects(runtime.chatStream({ model: 'glm-5.3-flash' }), error => {
-    assert.equal(error.name, 'TimeoutError');
-    assert.equal(error.modelFailure.code, 'request_timeout');
-    assert.equal(error.modelFailure.requestTimeoutMs, 50);
+    assert.equal(error.name, 'Error');
+    assert.equal(error.modelFailure.code, 'server_error');
+    assert.equal(error.modelFailure.requestTimeoutMs, 500);
     assert.equal(error.modelFailure.requestPhase, 'retry_delay');
+    assert.equal(error.modelFailure.retryDeferred, true);
     return true;
   });
   assert.equal(fake.requests.length, 1);
@@ -714,6 +732,77 @@ for (const kind of ['headers', 'answer', 'reasoning']) {
   });
 }
 
+for (const model of ['glm-5.3-flash', 'qwen3.8-max', 'gpt-6-luna', 'gemini-4-argon']) {
+  test(`Go ${model} preserves long 429 Retry-After and returns immediately instead of timing out`, { timeout: 2000 }, async t => {
+    const fake = await serverFor(t, (_req, res) => {
+      res.writeHead(429, { 'Content-Type': 'application/json', 'Retry-After': '3600', 'x-request-id': 'quota-fixture' });
+      res.end(JSON.stringify({ error: { code: 'rate_limit_exceeded', message: 'Usage limit reached; retry later.' } }));
+    });
+    const statuses = [];
+    const runtime = new OpenCodeGoRuntime(config, fake);
+    runtime.timeoutMs = 5000;
+    await assert.rejects(runtime.chatStream({ model, onStatus: status => statuses.push(status) }), error => {
+      assert.equal(error.modelFailure.code, 'rate_limit_exceeded');
+      assert.equal(error.modelFailure.httpStatus, 429);
+      assert.equal(error.modelFailure.retryAfterMs, 3600000);
+      assert.equal(error.modelFailure.requestId, 'quota-fixture');
+      assert.equal(error.modelFailure.requestPhase, 'retry_delay');
+      assert.equal(error.modelFailure.retryDeferred, true);
+      assert.equal(error.modelFailure.attempts, 1);
+      assert.notEqual(error.name, 'TimeoutError');
+      return true;
+    });
+    assert.equal(statuses.length, 1);
+    assert.equal(statuses[0].retryDeferred, true);
+    assert.equal(fake.requests.length, 1);
+  });
+}
+
+test('Go keeps HTTP-date Retry-After diagnostics when the backoff is deferred', async t => {
+  const future = new Date(Date.now() + 3600000).toUTCString();
+  const fake = await serverFor(t, (_req, res) => {
+    res.writeHead(429, { 'Content-Type': 'application/json', 'Retry-After': future });
+    res.end(JSON.stringify({ error: { code: 'rate_limit_exceeded', message: 'Retry later' } }));
+  });
+  await assert.rejects(new OpenCodeGoRuntime(config, fake).chatStream({ model: 'glm-5.3-flash' }), error => {
+    assert.equal(error.modelFailure.code, 'rate_limit_exceeded');
+    assert.ok(error.modelFailure.retryAfterMs > 3500000);
+    assert.equal(error.modelFailure.retryDeferred, true);
+    return true;
+  });
+  assert.equal(fake.requests.length, 1);
+});
+
+test('Go short backoff and both attempts still share the original deadline', async t => {
+  let calls = 0;
+  const fake = await serverFor(t, (_req, res) => {
+    if (++calls === 1) {
+      res.writeHead(503, { 'Content-Type': 'application/json' });
+      res.end(JSON.stringify({ error: { code: 'server_error', message: 'Temporary failure' } }));
+    } else { res.writeHead(200, { 'Content-Type': 'text/event-stream' }); res.write(': waiting\n\n'); }
+  });
+  const runtime = new OpenCodeGoRuntime(config, { ...fake, retryDelayMs: 1 });
+  runtime.timeoutMs = 500;
+  await assert.rejects(runtime.chatStream({ model: 'glm-5.3-flash' }), error => {
+    assert.equal(error.name, 'TimeoutError');
+    assert.equal(error.modelFailure.requestTimeoutMs, 500);
+    assert.equal(error.modelFailure.attempts, 2);
+    return true;
+  });
+  assert.equal(fake.requests.length, 2);
+});
+
+test('Go caller cancellation still wins while publishing a deferred retry', async t => {
+  const controller = new AbortController();
+  const fake = await serverFor(t, (_req, res) => {
+    res.writeHead(429, { 'Content-Type': 'application/json', 'Retry-After': '3600' });
+    res.end(JSON.stringify({ error: { code: 'rate_limit_exceeded', message: 'Retry later' } }));
+  });
+  await assert.rejects(new OpenCodeGoRuntime(config, fake).chatStream({ model: 'glm-5.3-flash', signal: controller.signal,
+    onStatus: () => controller.abort() }), error => error.name === 'AbortError');
+  assert.equal(fake.requests.length, 1);
+});
+
 test('Go honors Retry-After and never retries invalid credentials even with a server error code', async t => {
   let status = 429;
   const fake = await serverFor(t, (_req, res) => {
@@ -723,8 +812,15 @@ test('Go honors Retry-After and never retries invalid credentials even with a se
   const waits = [];
   const runtime = new OpenCodeGoRuntime(config, { ...fake, retryDelayMs: 1 });
   runtime.timeoutMs = 100;
-  await assert.rejects(runtime.chatStream({ model: 'glm-5.3-flash', onStatus: event => waits.push(event) }), error => error.name === 'TimeoutError');
-  assert.match(waits[0].status, /in 1s/);
+  await assert.rejects(runtime.chatStream({ model: 'glm-5.3-flash', onStatus: event => waits.push(event) }), error => {
+    assert.equal(error.modelFailure.httpStatus, 429);
+    assert.equal(error.modelFailure.code, 'server_error');
+    assert.equal(error.modelFailure.retryAfterMs, 1000);
+    assert.equal(error.modelFailure.retryDeferred, true);
+    return true;
+  });
+  assert.match(waits[0].status, /retry deferred for 1s/);
+  assert.equal(waits[0].retryAttempt, undefined);
   assert.equal(fake.requests.length, 1);
   status = 401;
   await assert.rejects(runtime.chatStream({ model: 'glm-5.3-flash' }));

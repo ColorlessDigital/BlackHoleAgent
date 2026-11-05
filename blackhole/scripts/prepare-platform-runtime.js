@@ -53,7 +53,7 @@ try {
     error: error.message,
     hint: platform === 'linux'
       ? 'Run scripts/setup-kali-runtime.sh on Kali Linux to download Node and build llama.cpp first.'
-      : 'Download Node 24.21.0 into the repository parent or resources/node-runtime/win32-x64.'
+      : 'Download Node 24.22.2 into the repository parent or resources/node-runtime/win32-x64.'
   }, null, 2));
   process.exit(1);
 }
@@ -76,20 +76,20 @@ function findRuntimeSource() {
 function buildRuntimeCandidates() {
   if (platform === 'win32') {
     return [
-      path.join(BLACKHOLE_ROOT, `node-v24.21.0-win-${arch}`),
+      path.join(BLACKHOLE_ROOT, `node-v24.22.2-win-${arch}`),
       path.join(runtimeRoot, `win32-${arch}`)
     ];
   }
   if (platform === 'linux') {
     return [
       path.join(runtimeRoot, `linux-${arch}`),
-      path.join(BLACKHOLE_ROOT, `node-v24.21.0-linux-${arch}`)
+      path.join(BLACKHOLE_ROOT, `node-v24.22.2-linux-${arch}`)
     ];
   }
   if (platform === 'darwin') {
     return [
       path.join(runtimeRoot, `darwin-${arch}`),
-      path.join(BLACKHOLE_ROOT, `node-v24.21.0-darwin-${arch}`)
+      path.join(BLACKHOLE_ROOT, `node-v24.22.2-darwin-${arch}`)
     ];
   }
   return [path.join(runtimeRoot, `${platform}-${arch}`)];

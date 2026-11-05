@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { listenLoopback } from '../testSupport/loopback.js';
 import assert from 'node:assert/strict';
 import http from 'node:http';
 import https from 'node:https';
@@ -24,7 +25,7 @@ async function stalledBody(t) {
     res.write('<html><body>');
     ready();
   });
-  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  await listenLoopback(server);
   t.after(() => { response?.end(); server.closeAllConnections(); return new Promise(resolve => server.close(resolve)); });
   return { url: `http://127.0.0.1:${server.address().port}`, headers, end: () => response?.end() };
 }

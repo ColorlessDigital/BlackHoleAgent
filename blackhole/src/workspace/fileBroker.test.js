@@ -4,6 +4,62 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import { writeFile, readFile, patchFile, patchLines, listDirectoryTree, listDirectoryPage } from './fileBroker.js';
+import { PatchTransactionManager } from '../agent/core/patchTransaction.js';
+
+for (const newline of ['\n', '\r\n']) {
+  test(`block/line patches preserve ${JSON.stringify(newline)} and literal replacement tokens`, async t => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bh-newline-patch-'));
+    t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+    const target = path.join(root, 'file.js'), options = { workspaceRoot: root };
+    const original = ['before', 'var s = 1000;', 'var m = s * 6;', 'var h = m * 60;', 'after', ''].join(newline);
+    fs.writeFileSync(target, original);
+    const other = newline === '\n' ? '\r\n' : '\n';
+    await patchFile('file.js', ['var s = 1000;', 'var m = s * 6;', 'var h = m * 60;'].join(other),
+      ['var s = 1000;', 'var m = s * 60;', 'var h = m * 60;'].join(other), options);
+    assert.equal(fs.readFileSync(target, 'utf8'), original.replace('var m = s * 6;', 'var m = s * 60;'));
+    await patchLines('file.js', 2, 3, 'literal $& $` $\'\nsecond', options);
+    assert.equal(fs.readFileSync(target, 'utf8'), ['before', 'literal $& $` $\'', 'second', 'var h = m * 60;', 'after', ''].join(newline));
+    await patchFile('file.js', 'second', 'dollar $& $` $\'', options);
+    assert.equal(fs.readFileSync(target, 'utf8'), ['before', 'literal $& $` $\'', 'dollar $& $` $\'', 'var h = m * 60;', 'after', ''].join(newline));
+    const bytes = fs.readFileSync(target);
+    await assert.rejects(patchFile('file.js', 'var h = m * 600;', 'wrong', options), /does not exactly match/);
+    assert.ok(fs.readFileSync(target).equals(bytes));
+  });
+}
+
+test('transaction previews and actual block/line edits agree across CRLF boundaries', t => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bh-transaction-newline-'));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const target = path.join(root, 'file.js');
+  fs.writeFileSync(target, 'before\r\nold\r\nvalue\r\nafter\n');
+  const manager = new PatchTransactionManager(root);
+  const operations = [{ type: 'patch_file', path: 'file.js', search: 'old\nvalue', replace: 'new\n$&' },
+    { type: 'patch_lines', path: 'file.js', startLine: 2, endLine: 2, replacement: 'first\nsecond' }];
+  const review = manager.review(operations);
+  assert.equal(review.ok, true);
+  const expected = 'before\r\nfirst\r\nsecond\r\n$&\r\nafter\n';
+  assert.equal(review.previews.at(-1).after, expected);
+  assert.equal(manager.apply(operations).ok, true);
+  assert.equal(fs.readFileSync(target, 'utf8'), expected);
+});
+
+test('ranged reads retain exact source, report line coordinates and do not change the full preview', async t => {
+  const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bh-ranged-read-'));
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  const content = 'first\r\nsecond\r\nthird\r\nfourth';
+  fs.writeFileSync(path.join(root, 'file.js'), content);
+  assert.equal((await readFile('file.js', { workspaceRoot: root })).content, content);
+  const result = await readFile('file.js', { workspaceRoot: root, startLine: 2, lineCount: 2 });
+  assert.equal(result.content, 'second\r\nthird\r');
+  assert.equal(result.startLine, 2);
+  assert.equal(result.endLine, 3);
+  assert.equal(result.totalLines, 4);
+  assert.equal(result.hasMore, true);
+  assert.equal((await readFile('file.js', { workspaceRoot: root, startLine: 9, lineCount: 1 })).content, '');
+  await assert.rejects(readFile('file.js', { workspaceRoot: root, startLine: 0 }), /ranges require/);
+  await assert.rejects(readFile('file.js', { workspaceRoot: root, lineCount: 201 }), /ranges require/);
+  await assert.rejects(readFile('file.js', { workspaceRoot: root, abortSignal: AbortSignal.abort() }), { name: 'AbortError' });
+});
 import { getWorkspaceRoot } from './workspaceManager.js';
 
 describe('fileBroker', () => {

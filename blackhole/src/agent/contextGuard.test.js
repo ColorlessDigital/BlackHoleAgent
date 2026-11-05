@@ -3,7 +3,8 @@ import assert from 'node:assert';
 import {
   estimateTextTokens,
   compactToolResultContent,
-  applySlidingContextGuard
+  applySlidingContextGuard,
+  OBSERVATION_EVIDENCE
 } from './contextGuard.js';
 
 test('estimateTextTokens correctly weights Hangul and Latin text', () => {
@@ -25,7 +26,35 @@ test('compactToolResultContent preserves tool header while trimming long payload
 
   assert.ok(compacted.includes('[Tool Result (Tool: read_file)]'));
   assert.ok(compacted.includes('Trimmed'));
+  assert.ok(compacted.includes('read_file startLine and lineCount'));
   assert.ok(compacted.length < raw.length);
+});
+
+test('small source ranges retain middle-file evidence under the same context budget that clips a full read', () => {
+  const marker = 'this.defaultValue = undefined;';
+  const wholeFile = `[Tool Result (Tool: read_file)]\n${'unrelated header\n'.repeat(100)}${marker}\n${'unrelated footer\n'.repeat(100)}`;
+  const system = 's'.repeat(23000);
+  const full = applySlidingContextGuard([{ role: 'user', content: 'Fix the argument default value.' }, { role: 'user', content: wholeFile }], system, 8192);
+  assert.ok(!full.messages.at(-1).content.includes(marker));
+  const range = `[Tool Result (Tool: read_file)]\nLines: 100-105 of 200\nContent:\ndefault(value, description) {\n  ${marker}\n  return this;\n}`;
+  const partial = applySlidingContextGuard([{ role: 'user', content: 'Fix the argument default value.' }, { role: 'user', content: range }], system, 8192);
+  assert.ok(partial.messages.at(-1).content.includes(marker));
+  assert.equal(partial.limitExceeded, false);
+});
+
+test('old resume metadata cannot force the newest source evidence into a tiny head/tail excerpt', () => {
+  const goal = 'Fix the argument default value.';
+  const code = `[Tool Result (Tool: read_file)]\n${'source header\n'.repeat(100)}default(value, description) { this.defaultValue = undefined; }\n${'source footer\n'.repeat(100)}`;
+  const messages = [{ role: 'user', content: goal },
+    { role: 'user', content: `[Checkpoint Resume Context]\n${'old metadata '.repeat(400)}` },
+    { role: 'assistant', content: '{"tool":"read_file","params":{"path":"lib/argument.js"}}' },
+    { role: 'user', content: code },
+    { role: 'user', content: '[Observation-Only Edit Redirect]\nUse the observed source for the requested edit.' }];
+  const guarded = applySlidingContextGuard(messages, 's'.repeat(17000), 8192, { userGoal: goal });
+  assert.ok(guarded.messages.some(message => message.content === code));
+  assert.ok(guarded.removed > 0);
+  assert.equal(guarded.limitExceeded, false);
+  assert.equal(messages[3].content, code);
 });
 
 test('applySlidingContextGuard anchors initial goal and compacts long tool results', () => {
@@ -79,4 +108,20 @@ test('short sessions also compact oversized tool messages and signal unfit user 
   const unfit = applySlidingContextGuard([{ role: 'user', content: largeGoal }], '', 100);
   assert.strictEqual(unfit.limitExceeded, true);
   assert.strictEqual(unfit.messages[0].content, largeGoal);
+});
+test('current requested quotation evidence survives guard pressure and stale pins do not displace it', () => {
+  const goal = 'Read release.txt and quote its current value exactly.';
+  const messages = [{ role: 'user', content: 'Old task' },
+    { role: 'user', content: '[Tool Result (Tool: read_file)]\nold value', [OBSERVATION_EVIDENCE]: 'release.txt' },
+    { role: 'user', content: goal },
+    { role: 'user', content: '[Tool Result (Tool: read_file)]\ncurrent value', [OBSERVATION_EVIDENCE]: 'release.txt' },
+    { role: 'assistant', content: 'Inspecting support code.' },
+    { role: 'user', content: `[Tool Result (Tool: read_file)]\n${'source\n'.repeat(3000)}` }];
+  const result = applySlidingContextGuard(messages, 'System', 800, { userGoal: goal });
+  assert.equal(result.limitExceeded, false);
+  assert.ok(result.messages.some(message => message.content.includes('current value')));
+  assert.equal(result.messages.some(message => message.content.includes('old value')), false);
+  const retained = result.messages.find(message => message.content.startsWith('[Tool Result') && message.content.includes('current value'));
+  assert.equal(retained[OBSERVATION_EVIDENCE], 'release.txt');
+  for (const message of JSON.parse(JSON.stringify(result.messages))) assert.deepEqual(Object.keys(message).sort(), ['content', 'role']);
 });

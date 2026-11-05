@@ -2,6 +2,7 @@ import fs from 'fs';
 import path from 'path';
 import { spawn, exec, execSync } from 'child_process';
 import { setTimeout as delay } from 'node:timers/promises';
+import { streamChatCompletion } from './chatCompletionStream.js';
 import { emitLog } from '../common/eventBus.js';
 import {
   IS_WINDOWS,
@@ -246,7 +247,7 @@ export class LlamaCppRuntime {
       emitLog(`llama_server.log 파일 생성 실패: ${err.message}`, 'warning');
     }
 
-    llamaProcess = spawn(serverPath, args, {
+    const child = spawn(serverPath, args, {
       cwd: path.dirname(serverPath),
       detached: true,
       stdio: outFd ? ['ignore', outFd, outFd] : 'ignore',
@@ -257,6 +258,10 @@ export class LlamaCppRuntime {
         PATH: pathValue
       }
     });
+    llamaProcess = child;
+    let launchError = null;
+    child.once('error', error => { launchError = error; });
+    child.once('exit', () => { if (llamaProcess === child) llamaProcess = null; });
 
     if (outFd) {
       try {
@@ -280,14 +285,20 @@ export class LlamaCppRuntime {
 
     const startupTimeoutMs = normalizeTimeoutMs(merged.llamaCppStartupTimeoutMs, DEFAULT_STARTUP_TIMEOUT_MS);
     const deadline = Date.now() + startupTimeoutMs;
-    while (Date.now() < deadline) {
-      signal?.throwIfAborted();
-      if (await this.isHealthy()) return true;
-      if (llamaProcess && llamaProcess.exitCode !== null) {
-        break;
+    try {
+      while (Date.now() < deadline) {
+        signal?.throwIfAborted();
+        if (await this.isHealthy()) return true;
+        if (launchError || child.exitCode !== null || child.signalCode !== null) break;
+        await delay(400, undefined, { signal });
       }
-      await delay(400, undefined, { signal });
+    } catch (error) {
+      if (child.pid && child.exitCode === null && child.signalCode === null) await killPid(child.pid);
+      if (llamaProcess === child) llamaProcess = null;
+      throw error;
     }
+    if (child.pid && child.exitCode === null && child.signalCode === null) await killPid(child.pid);
+    if (llamaProcess === child) llamaProcess = null;
 
     let logTail = '';
     if (fs.existsSync(logPath)) {
@@ -299,6 +310,7 @@ export class LlamaCppRuntime {
         logTail = `로그 읽기 실패: ${err.message}`;
       }
     }
+    if (launchError) logTail = `${launchError.code || 'SPAWN_FAILED'}: ${launchError.message}\n${logTail}`;
 
     const isGpuOom = logTail.includes('OutOfDeviceMemory') || 
                       logTail.includes('failed to allocate Vulkan') || 
@@ -311,7 +323,7 @@ export class LlamaCppRuntime {
     }
 
     emitLog(`llama.cpp 서버가 시작되지 않았거나 비정상 종료되었습니다.\n\n[최근 로그]:\n${logTail}`, 'error', {
-      exitCode: llamaProcess?.exitCode ?? null,
+      exitCode: child.exitCode,
       logPath
     });
     return false;
@@ -327,22 +339,6 @@ export class LlamaCppRuntime {
         // ignore
       }
       llamaProcess = null;
-    }
-
-    // Fallback: Port scanning
-    try {
-      const url = new URL(this.config.llamaCppUrl || this.baseUrl);
-      const port = url.port || '8080';
-      if (port) {
-        const pid = await findPidByPort(port);
-        if (pid) {
-          emitLog(`포트 ${port}를 점유 중인 프로세스 ${pid}를 강제 종료합니다.`, 'warning');
-          const success = await killPid(pid);
-          if (success) killed = true;
-        }
-      }
-    } catch (err) {
-      // ignore
     }
 
     if (killed) {
@@ -363,7 +359,7 @@ export class LlamaCppRuntime {
     }
   }
 
-  async chatStream({ model, messages, maxTokens, temperature, grammar, signal, onReasoning }, onChunk) {
+  async chatStream({ model, messages, maxTokens, temperature, grammar, signal, onReasoning, allowIncomplete }, onChunk) {
     const ready = await this.ensureServerRunning({}, { signal });
     signal?.throwIfAborted();
     if (!ready) throw new Error(`llama.cpp 서버가 준비되지 않았습니다. ${LLAMA_SERVER_EXECUTABLE}와 GGUF 모델 경로를 확인하세요.`);
@@ -379,39 +375,12 @@ export class LlamaCppRuntime {
     if (grammar && typeof grammar === 'string') {
       requestBody.grammar = grammar;
     }
-    const timeoutSignal = AbortSignal.timeout(requestTimeoutMs);
-    const response = await fetch(`${this.baseUrl}/v1/chat/completions`, {
-      method: 'POST',
+    return streamChatCompletion({
+      url: `${this.baseUrl}/v1/chat/completions`,
       headers: { 'Content-Type': 'application/json' },
-      signal: signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal,
-      body: JSON.stringify(requestBody)
-    });
-    if (!response.ok) throw new Error(`llama.cpp 호출 실패: ${response.status}`);
-    if (!response.body) throw new Error('llama.cpp response did not include a stream body.');
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop();
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        const payload = line.slice(6).trim();
-        if (!payload || payload === '[DONE]') continue;
-        try {
-          const data = JSON.parse(payload);
-          const delta = data.choices?.[0]?.delta || {};
-          const reasoning = delta.reasoning_content || delta.reasoning;
-          if (typeof reasoning === 'string' && reasoning) onReasoning?.(reasoning);
-          if (typeof delta.content === 'string' && delta.content) onChunk(delta.content);
-        } catch {
-          // Ignore partial frames.
-        }
-      }
-    }
+      body: requestBody, timeoutMs: requestTimeoutMs, signal, provider: 'llamacpp', model: modelName,
+      onReasoning, allowIncomplete
+    }, onChunk);
   }
 }
 

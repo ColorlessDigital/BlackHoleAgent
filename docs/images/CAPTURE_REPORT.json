@@ -1,5 +1,6 @@
 {
-  "source": "Unmodified BlackHole built frontend with scripted API/SSE fixtures",
+  "source": "Unmodified stabilized-31 BlackHole built frontend with scripted API/SSE fixtures",
+  "build": 31,
   "interfaceLanguage": "en",
   "scriptedContentLanguage": "en",
   "liveModel": false,
@@ -39,10 +40,18 @@
         "width": 1600,
         "height": 1000
       }
+    },
+    {
+      "name": "unverified",
+      "viewport": {
+        "width": 1600,
+        "height": 1000
+      }
     }
   ],
   "errors": [],
   "blockedExternalHosts": [
+    "fonts.googleapis.com",
     "fonts.googleapis.com"
   ]
 }

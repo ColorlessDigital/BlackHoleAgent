@@ -14,13 +14,295 @@ import { TaskGraphPlanner } from './taskGraphPlanner.js';
 import { AgentMemoryStore } from './agentMemoryStore.js';
 import { buildCheckpointResumePrompt } from './checkpointResume.js';
 import { resolveModelRoute } from '../modelRouting.js';
+import { applySlidingContextGuard, estimateTextTokens } from '../contextGuard.js';
 import { CapabilityExecutor } from '../../capabilities/executor.js';
 import { PatchTransactionManager } from './patchTransaction.js';
 import { DiffTracker } from './diffTracker.js';
 import { normalizeAgentRunLimits } from '../../config/agentRunLimits.js';
 import { resolveDirectoryTask, observeDirectoryTask, directoryTaskVerified } from './directoryTask.js';
+import { ObservationEvidence, resolveFileQuoteRequest } from './observationEvidence.js';
 
 describe('AgentStateMachine', () => {
+  test('default observation graph does not invent implementation or changed-file verification work', () => {
+    const planner = new TaskGraphPlanner();
+    for (const goal of ['Read release.txt and quote its current value exactly. Observation only.', '변경 없이 package.json을 읽고 설명해줘.']) {
+      const graph = planner.buildTaskGraph({ goal, workspaceSummary: { sourceFileCount: 50 } });
+      assert.equal(graph.nodes.some(node => ['implement', 'patch', 'verify'].includes(node.type)), false);
+      assert.ok(graph.nodes.some(node => node.type === 'analyze'));
+      assert.ok(graph.nodes.some(node => node.type === 'summarize'));
+    }
+    assert.ok(planner.buildTaskGraph({ goal: 'Fix math.cjs.' }).nodes.some(node => node.type === 'implement'));
+    for (const goal of ['Read math.cjs. Fix addition and keep the tests unchanged.', 'Read version.txt. Restore the existing format.', 'Inspect the implementation.\nPlease update the return value.', 'Restore the previous implementation.', 'Handle the remaining task.']) {
+      const graph = planner.buildTaskGraph({ goal });
+      assert.ok(graph.nodes.some(node => node.type === 'implement'), goal);
+      assert.ok(planner.resumeTaskGraph(graph).nodes.some(node => node.type === 'implement'), goal);
+    }
+    const mistaken = planner.buildTaskGraph({ goal: 'Fix math.cjs.' });
+    mistaken.goal = 'Read version.txt and quote its value. Observation only.';
+    assert.equal(planner.resumeTaskGraph(mistaken).nodes.some(node => node.type === 'implement'), false);
+    assert.equal(planner.buildTaskGraph({ goal: 'Inspect version.txt.', planSteps: ['Patch version.txt'] }).nodes.some(node => node.type === 'implement'), false);
+  });
+
+  test('an exact file quotation cannot complete with stale history or an omitted value', async t => {
+    const { machine, events } = isolatedRun(t, 'Read release.txt and quote its current value exactly. Observation only; no modifications.',
+      { selfHealingMaxCycles: 3 });
+    fs.writeFileSync(path.join(machine.workspaceRoot, 'release.txt'), 'release-2026-current');
+    let calls = 0, executions = 0;
+    machine.executor.execute = async (tool, params) => {
+      executions++;
+      assert.equal(tool, 'read_file');
+      assert.equal(params.path, 'release.txt');
+      return { ok: true, result: { path: path.join(machine.workspaceRoot, 'release.txt'), content: 'release-2026-current',
+        startLine: 1, hasMore: false } };
+    };
+    machine.callModel = async (_system, _messages, onChunk) => {
+      calls++;
+      if (calls === 1) onChunk('The old release was release-2025.');
+      else if (calls === 2) onChunk('{"tool":"read_file","params":{"path":"release.txt"}}');
+      else if (calls === 3) onChunk('The file has been read successfully.');
+      else onChunk('The current value is release-2026-current.');
+    };
+    await machine.run();
+    assert.equal(calls, 4);
+    assert.equal(executions, 1);
+    assert.equal(machine.runOutcome.status, 'completed');
+    const text = events.filter(event => event.type === 'chunk').map(event => event.text).join('');
+    assert.match(text, /release-2026-current/);
+    assert.doesNotMatch(text, /release-2025/);
+    assert.equal(events.filter(event => event.observationVerification).length, 2);
+  });
+
+  test('failed requested reads and approval rejections are not erased by quotation recovery', async t => {
+    const { machine } = isolatedRun(t, 'Read release.txt and quote its current value exactly.', { selfHealingMaxCycles: 1 });
+    machine.executor.execute = async () => ({ ok: false, rejected: true, error: 'User rejected this read.' });
+    let calls = 0;
+    machine.callModel = async (_system, _messages, onChunk) => {
+      onChunk(++calls === 1 ? '{"tool":"read_file","params":{"path":"release.txt"}}' : 'No read was performed.');
+    };
+    await machine.run();
+    assert.notEqual(machine.runOutcome.status, 'completed');
+    assert.equal(machine.checkpoint.toolFailures[0].reason, 'rejected');
+  });
+
+  test('quotation evidence is literal, run-scoped, bounded, and never reads files by itself', () => {
+    const root = path.resolve(os.tmpdir());
+    for (const goal of ['Read `release notes.txt` and quote its contents.', 'Observation round 7: read the newly created version.txt and quote its value.', '"version.txt" 파일을 읽고 내용을 그대로 보여줘.']) {
+      assert.ok(resolveFileQuoteRequest(goal));
+    }
+    for (const goal of ['Explain how to read version.txt and quote its value.', 'Can you explain how to read version.txt and quote its value?',
+      'Please describe how to read version.txt and quote its value.', 'Read https://example.test/page and quote its text exactly.',
+      'Read file:///tmp/version.txt and quote its contents exactly.', 'Read this and quote it.', 'Read *.txt and quote it.', 'Inspect the implementation.']) {
+      assert.equal(resolveFileQuoteRequest(goal), null);
+    }
+    const evidence = new ObservationEvidence('Read version.txt and quote its value exactly.', root);
+    const call = { tool: 'read_file', params: { path: 'version.txt' } };
+    assert.equal(evidence.verify('prior value').reason, 'requested_file_not_read');
+    assert.equal(evidence.observe(call, { ok: false, rejected: true }), null);
+    assert.equal(evidence.observe(call, { ok: true, result: { content: 'partial', startLine: 2, hasMore: false } }), null);
+    assert.equal(evidence.observe(call, { ok: true, result: { content: 'partial', startLine: 1, hasMore: true } }), null);
+    assert.ok(evidence.observe(call, { ok: true, result: { content: 'new\r\nvalue\n', startLine: 1, hasMore: false } }));
+    assert.equal(evidence.verify('new\nvalue').ok, true);
+    assert.equal(evidence.verify('new value').ok, false);
+    assert.equal(new ObservationEvidence('Read version.txt and quote its value exactly.', root).verify('new\nvalue').ok, false);
+    evidence.observe(call, { ok: true, result: { content: 'x'.repeat(5000), hasMore: false } });
+    assert.equal(evidence.verify('Large contents were inspected.').scope, 'fresh_read_only');
+    assert.ok(evidence.recoveryMessage({ reason: 'requested_quote_missing' }).length < 1000);
+    const partial = new ObservationEvidence('Read version.txt and quote the first line exactly.', root);
+    assert.equal(partial.request, null);
+    partial.observe(call, { ok: true, result: { content: 'one requested line', startLine: 3, hasMore: true } });
+    assert.equal(partial.verify('one requested line').applicable, false);
+    assert.equal(new ObservationEvidence('Read version.txt and quote its value exactly. Restore the original implementation.', root).request, null);
+    assert.equal(resolveFileQuoteRequest('Read data:text/plain,value and quote its text exactly.'), null);
+    assert.equal(resolveFileQuoteRequest('Read above and quote its text exactly.'), null);
+    assert.equal(resolveFileQuoteRequest('Read logs/ and quote its contents exactly.'), null);
+    assert.equal(resolveFileQuoteRequest('Read details.json and quote its author exactly.').exactQuote, false);
+    assert.equal(resolveFileQuoteRequest('"version.txt" 파일을 읽고 두 번째 줄을 정확히 인용해줘.').exactQuote, false);
+  });
+
+  test('an unfulfilled exact quote stops as incomplete when its configured repair budget is exhausted', async t => {
+    const { machine, events } = isolatedRun(t, 'Read version.txt and quote its value exactly.', { selfHealingMaxCycles: 1 });
+    let calls = 0;
+    machine.callModel = async (_system, _messages, onChunk) => { calls++; onChunk('The request is complete.'); };
+    machine.executor.execute = async () => assert.fail('No unrequested automatic reads may bypass the executor.');
+    await machine.run();
+    assert.equal(calls, 2);
+    assert.equal(machine.runOutcome.status, 'incomplete');
+    assert.equal(machine.runOutcome.reason, 'observation_not_verified');
+    assert.equal(machine.runOutcome.executionBudget.limitReached, 'repair_cycles');
+    assert.equal(events.some(event => event.type === 'chunk' && event.text === 'The request is complete.'), false);
+  });
+
+  test('advertised tools can match the execution host without changing executor permissions', () => {
+    const machine = new AgentStateMachine({ send() {}, messages: [{ role: 'user', content: 'Inspect the project.' }],
+      config: { workspaceRoot: os.tmpdir(), activeModel: 'opencode-go:glm-5.3-flash', agentMemoryEnabled: false } });
+    const originalExecutor = machine.executor;
+    machine.getModelTools = () => [ToolRegistry.getTool('read_file')];
+    const prompt = machine.buildToolPrompt();
+    assert.match(prompt, /1\. read_file/);
+    assert.doesNotMatch(prompt, /record_project_memory/);
+    assert.equal(machine.executor, originalExecutor);
+    assert.ok(ToolRegistry.getTool('record_project_memory'));
+  });
+
+  test('observation loop recovery never recommends unrelated patches', t => {
+    const { machine } = isolatedRun(t, 'Read version.txt and report the value.', { agentLoopGuardMaxRepeats: 1 });
+    const calls = [{ tool: 'read_file', params: { path: 'version.txt' } }];
+    assert.equal(machine.evaluateToolCallLoop(calls).blocked, false);
+    const loop = machine.evaluateToolCallLoop(calls);
+    assert.equal(loop.blocked, true);
+    assert.match(machine.buildLoopGuardHint(loop), /current observation request/);
+    assert.doesNotMatch(machine.buildLoopGuardHint(loop), /apply a minimal patch/);
+    machine.checkpoint.userGoal = 'Restore the previous implementation.';
+    assert.match(machine.buildLoopGuardHint(loop), /apply a minimal patch/);
+  });
+
+  test('an optional failed memory write remains a warning after a verified quotation, never a claimed write', async t => {
+    const { machine, events } = isolatedRun(t, 'Read version.txt and quote its value exactly.', { selfHealingMaxCycles: 3 });
+    let calls = 0;
+    machine.callModel = async (_system, _messages, onChunk) => onChunk(++calls === 1
+      ? '{"tool_calls":[{"tool":"read_file","params":{"path":"version.txt"}},{"tool":"record_project_memory","params":{"summary":"Version inspected."}}]}'
+      : 'The current value is 2026.11-release.');
+    machine.executor.execute = async tool => tool === 'read_file'
+      ? { ok: true, result: { content: '2026.11-release', hasMore: false } }
+      : { ok: false, error: 'Fixture memory storage unavailable.' };
+    await machine.run();
+    assert.equal(machine.runOutcome.status, 'completed');
+    assert.equal(machine.runOutcome.warnings[0].tool, 'record_project_memory');
+    assert.equal(machine.checkpoint.toolFailures.length, 0);
+    assert.equal(machine.checkpoint.nonBlockingToolFailures[0].effectStatus, 'failed_not_replayed');
+    assert.equal(events.some(event => event.level === 'warning' && event.optionalToolFailures), true);
+  });
+
+  test('required, approval-related, and unrelated failures cannot become optional observation warnings', t => {
+    const { machine } = isolatedRun(t, 'Read version.txt and quote its value exactly.');
+    machine.observationEvidence.observe({ tool: 'read_file', params: { path: 'version.txt' } },
+      { ok: true, result: { content: 'release', hasMore: false } });
+    for (const failure of [
+      { tool: 'record_project_memory', reason: 'rejected' },
+      { tool: 'record_project_memory', reason: 'blocked' },
+      { tool: 'record_project_memory', reason: 'execution_failed', policy: { requiresApproval: true } },
+      { tool: 'run_command', reason: 'execution_failed' }
+    ]) assert.deepEqual(machine.resolveOptionalObservationFailures([failure], 'release'), [failure]);
+    const failure = { tool: 'record_project_memory', reason: 'execution_failed' };
+    assert.deepEqual(machine.resolveOptionalObservationFailures([failure], 'omitted value'), [failure]);
+    machine.checkpoint.userGoal += ' Save this value to project memory.';
+    assert.deepEqual(machine.resolveOptionalObservationFailures([failure], 'release'), [failure]);
+  });
+
+  for (const [status, differentModel, rejects] of [[429, false, true], [401, false, true], [402, false, true], [429, true, false], [null, false, false]]) {
+    test(`compaction handles ${status || 'transport'} failure without repeating a limited shared model (different model: ${differentModel})`, async t => {
+      const { machine } = isolatedRun(t, 'Report the current implementation.', {
+        activeModel: 'opencode-go:gemini-4-argon', contextLimit: 8192,
+        agentModelProfiles: differentModel ? { summarizer: { model: 'opencode-go:glm-5.3-flash' } } : {}
+      });
+      const history = [{ role: 'user', content: machine.checkpoint.userGoal },
+        ...Array.from({ length: 14 }, (_, i) => ({ role: i % 2 ? 'assistant' : 'user', content: `Historical ${i}: ${'detail '.repeat(500)}` })),
+        { role: 'user', content: 'Report the current implementation.' }];
+      const failure = Object.assign(new Error(status ? `HTTP ${status}: fixture limit` : 'Transport timeout'),
+        { modelFailure: { httpStatus: status, code: status === 429 ? 'rate_limit_exceeded' : status ? 'provider_error' : 'request_timeout' } });
+      let calls = 0;
+      machine.callModel = async () => { calls++; throw failure; };
+      if (rejects) await assert.rejects(machine.maybeCompactContext('System', history), error => error === failure);
+      else {
+        const result = await machine.maybeCompactContext('System', history);
+        assert.equal(result.compacted, false);
+        assert.match(result.reason, /summarizer-failed/);
+      }
+      assert.equal(calls, 1);
+      assert.equal(history.at(-1).content, 'Report the current implementation.');
+    });
+  }
+
+  test('resume supplies the actual verification result before requesting more work', async t => {
+    const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bh-resume-verification-'));
+    t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+    fs.writeFileSync(path.join(root, 'math.cjs'), 'exports.add=(a,b)=>a+b;\n');
+    const goal = 'Fix math.cjs to add the supplied values.';
+    const machine = new AgentStateMachine({ send() {}, messages: [{ role: 'user', content: goal }],
+      config: { workspaceRoot: root, contextLimit: 8192, agentMemoryEnabled: false },
+      resumeCheckpoint: { sessionId: 'verified-resume', workspaceRoot: root, userGoal: goal,
+        state: 'STOPPED', changedFiles: ['math.cjs'] } });
+    stubCheckpointStore(machine);
+    let verifications = 0, modelCalls = 0;
+    machine.verificationEngine.runVerificationSuite = async () => {
+      verifications++;
+      return { ok: true, results: { syntax: { ok: true }, test: { ok: true }, lint: { ok: true, skipped: true } } };
+    };
+    machine.executor.execute = async () => assert.fail('A completed edit must not need duplicate test commands.');
+    machine.callModel = async (_system, messages, onChunk) => {
+      modelCalls++;
+      const evidence = messages.find(message => message.content.startsWith('[Checkpoint Verification Result]'));
+      assert.ok(evidence);
+      const result = JSON.parse(evidence.content.slice(evidence.content.indexOf('\n') + 1));
+      assert.equal(result.ok, true);
+      assert.equal(result.checks.test.ok, true);
+      assert.equal(result.checks.lint.skipped, true);
+      assert.deepEqual(result.changedFiles, ['math.cjs']);
+      onChunk('The implementation is correct and the available verification checks passed.');
+    };
+    await machine.run();
+    assert.equal(machine.runOutcome.status, 'completed');
+    assert.equal(verifications, 1);
+    assert.equal(modelCalls, 1);
+  });
+
+  test('native declarations are supplied once while local tool descriptions remain available', () => {
+    const make = model => new AgentStateMachine({ send() {}, messages: [{ role: 'user', content: 'Inspect the implementation.' }],
+      config: { workspaceRoot: os.tmpdir(), activeModel: model, agentModelRoutingEnabled: false, agentMemoryEnabled: false } });
+    const native = make('opencode-go:gemini-4-argon').buildToolPrompt();
+    assert.match(native, /native function declarations/);
+    assert.doesNotMatch(native, /read_file \(path:/);
+    assert.match(native, /read_file/);
+    const local = make('llamacpp:fixture').buildToolPrompt();
+    assert.match(local, /read_file \(path:string:required/);
+    assert.match(local, /Read the contents of a file/);
+    assert.match(native, /After editing, allow the verification phase to run/);
+    assert.match(local, /After editing, allow the verification phase to run/);
+  });
+
+  test('resume diagnostics and native schemas fit the planner without changing its context setting', () => {
+    const goal = 'Read lib/argument.js and restore default(value, description) to preserve all supplied values and descriptions. Only edit that implementation file.';
+    const machine = new AgentStateMachine({ send() {}, messages: [{ role: 'user', content: goal }],
+      config: { workspaceRoot: os.tmpdir(), activeModel: 'opencode-go:gemini-4-argon', contextLimit: 8192,
+        agentModelRoutingEnabled: false, agentMemoryEnabled: false },
+      resumeCheckpoint: { sessionId: 'resume-native-fixture', workspaceRoot: os.tmpdir(), userGoal: goal, state: 'FAIL',
+        loopGuardEvents: Array.from({ length: 4 }, (_, i) => ({ reason: 'repeated_identical_tool_calls', repeatCount: i + 3,
+          toolCalls: [{ tool: 'read_file', params: { path: 'lib/argument.js' } }] })) } });
+    const declarations = JSON.stringify(ToolRegistry.getAllTools().map(tool => ({ name: tool.name, description: tool.description, parameters: tool.inputSchema })));
+    const guarded = applySlidingContextGuard(machine.activeConversation, machine.buildSystemPrompt() + declarations, 8192, { userGoal: goal });
+    assert.equal(guarded.limitExceeded, false);
+    assert.ok(guarded.messages.some(message => message.content === goal));
+    assert.equal(machine.config.contextLimit, 8192);
+  });
+
+  test('large background index samples leave the latest requested implementation intact on resume', () => {
+    const goal = 'Restore Argument.default(value, description) in lib/argument.js.';
+    const machine = new AgentStateMachine({ send() {}, messages: [{ role: 'user', content: goal }],
+      config: { workspaceRoot: os.tmpdir(), activeModel: 'opencode-go:gemini-4-argon', contextLimit: 122880,
+        agentModelProfiles: { planner: { contextLimit: 8192 } }, agentMemoryEnabled: false },
+      resumeCheckpoint: { sessionId: 'large-index-resume', workspaceRoot: os.tmpdir(), userGoal: goal, state: 'FAIL' } });
+    let limits;
+    const summary = { workspaceRoot: os.tmpdir(), fileCount: 50000, scanStats: { indexedFiles: 1200 },
+      sampleSourceFiles: Array.from({ length: 100 }, (_, i) => `packages/${'nested/'.repeat(50)}source-${i}.js`),
+      symbols: Array.from({ length: 100 }, () => ({ name: 'symbol'.repeat(100), file: 'source.js', line: 1 })) };
+    machine.contextEngine = { getRecentlyChangedFiles: () => [], getWorkspaceSummary: options => { limits = options; return summary; } };
+    const background = machine.buildWorkspacePromptSection();
+    assert.ok(estimateTextTokens(background) < 1050);
+    assert.match(background, /50000/);
+    assert.match(background, /indexedFiles/);
+    assert.deepEqual(limits, { fileLimit: 4, symbolLimit: 6 });
+    const body = `// implementation\n${'const preserved = true;\n'.repeat(90)}default(value, description) {\n  this.defaultValue = undefined;\n}\n${'// existing code\n'.repeat(90)}`;
+    const messages = [...machine.activeConversation, { role: 'user', content: `[Tool Result (Tool: read_file)]\n${body}` },
+      { role: 'user', content: '[Observation-Only Edit Redirect] Continue the requested edit.' }];
+    const declarations = JSON.stringify(ToolRegistry.getAllTools().map(tool => ({ name: tool.name, description: tool.description, parameters: tool.inputSchema })));
+    const guarded = applySlidingContextGuard(messages, machine.buildSystemPrompt() + declarations, 8192, { userGoal: goal });
+    assert.equal(guarded.limitExceeded, false);
+    assert.ok(guarded.messages.some(message => message.content.includes('this.defaultValue = undefined;')));
+    assert.equal(summary.sampleSourceFiles.length, 100);
+    assert.equal(machine.config.contextLimit, 122880);
+    assert.equal(machine.config.agentModelProfiles.planner.contextLimit, 8192);
+  });
+
   function stubCheckpointStore(stateMachine) {
     stateMachine.config.agentMemoryEnabled = false;
     stateMachine.checkpointStore = {

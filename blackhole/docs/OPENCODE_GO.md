@@ -33,6 +33,11 @@ Catalog membership, authentication failures, explicit model rejection and
 temporary request failures are distinct states. Catalog refresh alone does
 not replace the selected model or stored credentials.
 
+When Retry-After cannot fit the remaining request deadline, the runtime returns
+the original quota/rate error without waiting beyond that budget. Same-model
+compaction quota failures do not trigger a duplicate planner request. These
+changes do not bypass provider limits, switch models or enable paid overage.
+
 Cancellation, request deadlines, truncated responses, partial output and
 upstream HTTP/SSE failures are preserved. Timeout diagnostics identify request
 phase, budget, partial output and retry information. Native tool arguments
@@ -49,3 +54,11 @@ are summarized in [WORK_LOG.md](WORK_LOG.md). Private raw account diagnostics
 and conversations are excluded; they are not independent public benchmarks.
 
 Provider reference: [OpenCode Go](https://opencode.ai/docs/go/).
+
+## Stabilized-31 Coding Validation
+
+Eight real GLM 5.3 Flash tasks used the product's default behavioral verifier,
+unchanged existing assertions and diagnostic context/output 8192. They are small
+seeded tasks, not all-model certification. Missing tests leave supported source
+changes incomplete/unverified rather than passing on syntax alone.
+See [versioned evidence](../../docs/validation/stabilized-31.json).

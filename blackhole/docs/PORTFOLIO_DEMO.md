@@ -1,5 +1,10 @@
 # BlackHole Agent Portfolio Demo
 
+Updated for stabilized31. Use [the public demo guide](../../docs/DEMO.md) and
+[versioned evidence](../../docs/validation/stabilized-31.json) for current scope.
+Demonstrate verified behavior and unavailable checks separately; do not present
+the scripted UI captures or older build measurements as live-model performance.
+
 This document is a prompt-ready demo script for showing BlackHole as a local llama.cpp-based autonomous coding agent.
 
 ## Positioning
@@ -142,7 +147,7 @@ It also covers diff transaction review, accept, reject, rollback commands, and d
 Manual extension compile:
 
 ```bash
-<repo>\node-v24.21.0-win-x64\node.exe <repo>\vscode-blackhole\node_modules\typescript\bin\tsc -p <repo>\vscode-blackhole
+<repo>\node-v24.22.2-win-x64\node.exe <repo>\vscode-blackhole\node_modules\typescript\bin\tsc -p <repo>\vscode-blackhole
 ```
 
 9. Run the release gate:

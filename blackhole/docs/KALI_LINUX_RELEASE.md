@@ -1,5 +1,9 @@
 # Kali Linux Release Plan
 
+Public source baseline: stabilized31. The Windows publication does not certify
+a build31 Linux package. The drift snapshot below remains historical; run the
+documented build and packaged smoke checks on a real Linux host before claiming parity.
+
 BlackHole keeps one shared agent core and separates only platform runtime and packaging.
 
 - Shared core: `src/agent`, `src/mcp`, `src/ci`, `src/ide`, `src/web`, `frontend`
@@ -68,7 +72,7 @@ npm run check:parity
 
 Run as a normal desktop user from the BlackHole project root on Kali.
 Use a current Node 24 LTS installation to invoke npm; the script stages
-Node 24.21.0 for the app's MCP runtime. apt installation may request sudo:
+Node 24.22.2 for the app's MCP runtime. apt installation may request sudo:
 
 ```bash
 npm run build:kali
@@ -113,7 +117,7 @@ Useful environment variables:
 SKIP_APT=1 bash scripts/setup-kali-runtime.sh
 LLAMA_SERVER_PATH=/usr/local/bin/llama-server bash scripts/setup-kali-runtime.sh
 LLAMA_CPP_SOURCE=/opt/llama.cpp bash scripts/setup-kali-runtime.sh
-NODE_VERSION=24.21.0 bash scripts/setup-kali-runtime.sh
+NODE_VERSION=24.22.2 bash scripts/setup-kali-runtime.sh
 LLAMA_CPP_REF=b9553 bash scripts/setup-kali-runtime.sh
 BUILD_JOBS=2 bash scripts/setup-kali-runtime.sh
 ```

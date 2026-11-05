@@ -1,4 +1,5 @@
 import { emitLog } from '../common/eventBus.js';
+import { streamChatCompletion } from './chatCompletionStream.js';
 
 // OpenGo / generic OpenAI-compatible model provider.
 //
@@ -124,7 +125,7 @@ export class OpenaiCompatRuntime {
     }
   }
 
-  async chatStream({ model, messages, maxTokens, temperature, signal, onReasoning }, onChunk) {
+  async chatStream({ model, messages, maxTokens, temperature, signal, onReasoning, allowIncomplete }, onChunk) {
     signal?.throwIfAborted();
     if (!this.baseUrl) {
       throw new Error('OpenGo 공급자가 설정되지 않았습니다. 설정 → OpenGo 외부 모델에서 프리셋 선택 또는 baseUrl 입력 후 연결 테스트를 실행하세요.');
@@ -142,49 +143,11 @@ export class OpenaiCompatRuntime {
       stream_options: { include_usage: true }
     };
     emitLog(`OpenGo chat: model=${modelName} via ${this.baseUrl}`, 'info');
-    const timeoutSignal = AbortSignal.timeout(this.timeoutMs);
-    const response = await fetch(resolveOpengoEndpoint(this.baseUrl, 'chat/completions'), {
-      method: 'POST',
+    return streamChatCompletion({
+      url: resolveOpengoEndpoint(this.baseUrl, 'chat/completions'),
       headers: { 'Content-Type': 'application/json', ...this.authHeaders() },
-      signal: signal ? AbortSignal.any([signal, timeoutSignal]) : timeoutSignal,
-      body: JSON.stringify(requestBody)
-    });
-    if (!response.ok) {
-      const body = await response.text().catch(() => '');
-      throw new Error(`OpenGo 호출 실패: HTTP ${response.status} ${body.slice(0, 300)}`);
-    }
-    if (!response.body) throw new Error('OpenGo response did not include a stream body.');
-    const reader = response.body.getReader();
-    const decoder = new TextDecoder();
-    let buffer = '';
-    let usage = null;
-    while (true) {
-      const { done, value } = await reader.read();
-      if (done) break;
-      buffer += decoder.decode(value, { stream: true });
-      const lines = buffer.split('\n');
-      buffer = lines.pop();
-      for (const line of lines) {
-        if (!line.startsWith('data: ')) continue;
-        const payload = line.slice(6).trim();
-        if (!payload || payload === '[DONE]') continue;
-        try {
-          const data = JSON.parse(payload);
-          if (data.usage) {
-            usage = {
-              promptTokens: Number(data.usage.prompt_tokens) || null,
-              completionTokens: Number(data.usage.completion_tokens) || null
-            };
-          }
-          const delta = data.choices?.[0]?.delta || {};
-          const reasoning = delta.reasoning_content || delta.reasoning;
-          if (typeof reasoning === 'string' && reasoning) onReasoning?.(reasoning);
-          if (typeof delta.content === 'string' && delta.content) onChunk(delta.content);
-        } catch {
-          // Ignore partial frames.
-        }
-      }
-    }
-    return { usage };
+      body: requestBody, timeoutMs: this.timeoutMs, signal, provider: 'opengo', model: modelName,
+      onReasoning, allowIncomplete
+    }, onChunk);
   }
 }

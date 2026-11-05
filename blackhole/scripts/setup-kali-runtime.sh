@@ -5,7 +5,7 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "${SCRIPT_DIR}/.." && pwd)"
 BLACKHOLE_ROOT="$(cd "${PROJECT_ROOT}/.." && pwd)"
 
-NODE_VERSION="${NODE_VERSION:-24.21.0}"
+NODE_VERSION="${NODE_VERSION:-24.22.2}"
 LLAMA_CPP_REF="${LLAMA_CPP_REF:-b9553}"
 UNAME_ARCH="$(uname -m)"
 case "${UNAME_ARCH}" in

@@ -3,6 +3,7 @@ import fs from 'fs';
 import os from 'os';
 import path from 'path';
 import test from 'node:test';
+import { listenLoopback } from '../testSupport/loopback.js';
 import http from 'node:http';
 import { getEventListeners } from 'node:events';
 import { setTimeout as delay } from 'node:timers/promises';
@@ -297,7 +298,7 @@ test('BlackHole MCP server cancels a real pending web body on notification and o
     res.writeHead(200, { 'Content-Type': 'text/html' });
     res.write('<html>');
   });
-  await new Promise(resolve => web.listen(0, '127.0.0.1', resolve));
+  await listenLoopback(web);
   const manager = new McpClientManager();
   t.after(async () => {
     await manager.closeAll();

@@ -49,6 +49,7 @@ app.whenReady().then(async () => {
     process.env.BLACKHOLE_DATA_DIR = path.join(directory, 'runtime-data');
     process.env.BLACKHOLE_DISABLE_WORKSPACE_STANDARD = '1';
     const { AgentStateMachine } = require(path.join(source, 'src/agent/core/stateMachine.js'));
+    const { ToolRegistry } = require(path.join(source, 'src/agent/core/toolRegistry.js'));
     const { AgentCheckpointStore } = require(path.join(source, 'src/agent/core/checkpointStore.js'));
     const { ProjectContextEngine } = require(path.join(source, 'src/agent/core/contextEngine.js'));
     const { resolveModelRoute } = require(path.join(source, 'src/agent/modelRouting.js'));
@@ -98,6 +99,70 @@ app.whenReady().then(async () => {
       assert.equal(engine.fileMap.has('c.md'), true, 'One disappearing file must not stop the remaining scan.');
       return { files: [...engine.fileMap.keys()] };
     });
+    await technical('chat-transport-fault-repetition', async () => {
+      const http = require('node:http');
+      const { OpenaiCompatRuntime } = require(path.join(source, 'src/runtime/openaiCompatRuntime.js'));
+      const { LlamaCppRuntime } = require(path.join(source, 'src/runtime/llamaCppRuntime.js'));
+      const { OpenCodeGoRuntime } = require(path.join(source, 'src/runtime/openCodeGoRuntime.js'));
+      const frame = value => `data: ${JSON.stringify(value)}\n\n`;
+      const repeats = bounded('transport-repeats', 10, 100);
+      let scenario, requests = 0, completed = 0;
+      const server = http.createServer((_req, res) => {
+        requests++;
+        res.writeHead(200, { 'Content-Type': 'text/event-stream' });
+        if (scenario === 'partial') return res.end(frame({ choices: [{ delta: { content: 'partial' } }] }));
+        if (scenario === 'length') return res.end(frame({ choices: [{ delta: { content: 'partial' }, finish_reason: 'length' }] }));
+        if (scenario === 'malformed') return res.end('data: invalid-json\n\n');
+        if (scenario === 'messages') return res.write(frame({ type: 'content_block_delta', delta: { type: 'text_delta', text: 'OK' } }) + frame({ type: 'message_stop' }) + 'data: stale\n\n');
+        if (scenario === 'responses') return res.write(frame({ type: 'response.output_text.delta', delta: 'OK' }) + frame({ type: 'response.completed' }) + 'data: stale\n\n');
+        if (scenario === 'google') return res.write(frame({ candidates: [{ content: { parts: [{ text: 'OK' }] }, finishReason: 'STOP' }] }) + 'data: stale\n\n');
+        res.write(frame({ choices: [{ delta: { content: 'OK', reasoning_content: 'Separate thought' }, finish_reason: 'stop' }] }) + 'data: [DONE]\n\ndata: stale\n\n');
+      });
+      for (let attempt = 0; ; attempt++) {
+        try {
+          await new Promise((resolve, reject) => {
+            const error = cause => { server.off('listening', listening); reject(cause); };
+            const listening = () => { server.off('error', error); resolve(); };
+            server.once('error', error);
+            server.once('listening', listening);
+            server.listen(crypto.randomInt(49152, 65536), '127.0.0.1');
+          });
+          break;
+        } catch (error) {
+          if (attempt >= 19 || !['EADDRINUSE', 'EACCES'].includes(error.code)) throw error;
+        }
+      }
+      const url = `http://127.0.0.1:${server.address().port}`;
+      try {
+        for (let i = 0; i < repeats; i++) {
+          for (const provider of ['opengo', 'llamacpp']) {
+            const instance = provider === 'opengo' ? new OpenaiCompatRuntime({ opengoBaseUrl: url }) : new LlamaCppRuntime({ llamaCppUrl: url });
+            if (provider === 'llamacpp') instance.ensureServerRunning = async () => true;
+            for (const [kind, code] of [['done', null], ['partial', 'stream_disconnected'], ['length', 'output_token_limit'], ['malformed', 'invalid_stream_event']]) {
+              scenario = kind;
+              let text = '', reasoning = '';
+              const result = instance.chatStream({ model: `${provider}:fixture`, messages: [], maxTokens: 4096,
+                signal: AbortSignal.timeout(2000), onReasoning: chunk => { reasoning += chunk; } }, chunk => { text += chunk; });
+              if (code) await assert.rejects(result, error => error.modelFailure?.code === code);
+              else { await result; assert.equal(text, 'OK'); assert.equal(reasoning, 'Separate thought'); }
+              completed++;
+            }
+          }
+          for (const [model, protocol] of [['glm-5.3-flash', 'chat'], ['qwen3.8-max', 'messages'], ['gpt-6-luna', 'responses'], ['gemini-4-argon', 'google']]) {
+            scenario = protocol;
+            let text = '';
+            await new OpenCodeGoRuntime({ opencodeGoApiKey: 'fixture-key' }, { baseUrl: url }).chatStream({ model,
+              messages: [], signal: AbortSignal.timeout(2000) }, chunk => { text += chunk; });
+            assert.equal(text, 'OK');
+            completed++;
+          }
+        }
+        assert.equal(requests, repeats * 12, 'Diagnostic requests must not be replayed.');
+        return { repeats, completed, requests, network: 'Loopback fixtures only; no account inference.' };
+      } finally {
+        await new Promise(resolve => { server.close(resolve); server.closeAllConnections(); });
+      }
+    });
     if (!process.argv.includes('--live')) return;
     const { OpenCodeGoRuntime } = require(path.join(source, 'src/runtime/openCodeGoRuntime.js'));
     runtime = new OpenCodeGoRuntime(loaded);
@@ -109,7 +174,7 @@ app.whenReady().then(async () => {
     report.model = loaded.activeModel;
     report.limits = { repeats, turns, largeFiles };
     report.modelRoute = resolveModelRoute(loaded, { phase: 'plan' });
-    const node = path.join(root, '../node-v24.21.0-win-x64/node.exe');
+    const node = path.join(root, '../node-v24.22.2-win-x64/node.exe');
     function fixture(name, generated = 0) {
       const workspace = path.join(directory, name);
       const domain = generated ? 'packages/checkout' : 'domain';
@@ -139,6 +204,7 @@ app.whenReady().then(async () => {
         protectedHashes: Object.fromEntries(protectedFiles.map(file => [file, digest(path.join(workspace, file))])) };
     }
     const live = async (name, fixture, messages, sessionId) => {
+      const readOnly = /^conversation-\d+$/.test(name);
       const started = Date.now(), events = [], wire = [];
       const realFetch = globalThis.fetch;
       globalThis.fetch = async (url, options) => {
@@ -160,13 +226,14 @@ app.whenReady().then(async () => {
       const execute = machine.executor.execute.bind(machine.executor);
       const mutations = new Set(['write_file', 'patch_file', 'patch_lines', 'apply_patch_transaction']);
       const allowed = new Set(['read_file', 'list_dir', 'inspect_code_context', 'project_search', 'review_patch_transaction', ...mutations]);
+      machine.getModelTools = () => ToolRegistry.getAllTools().filter(tool => allowed.has(tool.name) && (!readOnly || !mutations.has(tool.name)));
       machine.executor.execute = (tool, params, options) => {
         let operations = params.operations || [];
         if (typeof operations === 'string') { try { operations = JSON.parse(operations); } catch { return { ok: false, error: 'Invalid fixture operations' }; } }
         const paths = [params.path, ...(Array.isArray(operations) ? operations.map(item => item?.path ?? item?.params?.path) : [])].filter(Boolean);
         const relative = paths.map(file => path.relative(fixture.workspace, path.resolve(fixture.workspace, file)).replaceAll('\\', '/'));
         if (!allowed.has(tool) || relative.some(file => file === '..' || file.startsWith('../') || path.isAbsolute(file))
-          || (mutations.has(tool) && (!relative.length || relative.some(file => !fixture.implementations.includes(file))))) {
+          || (mutations.has(tool) && (readOnly || !relative.length || relative.some(file => !fixture.implementations.includes(file))))) {
           return { ok: false, error: 'Only isolated implementation edits and local observations are allowed in this diagnostic.' };
         }
         return execute(tool, params, options);

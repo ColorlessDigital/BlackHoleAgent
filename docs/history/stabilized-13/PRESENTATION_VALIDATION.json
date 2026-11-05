@@ -1,0 +1,56 @@
+{
+  "checkedAt": "2026-11-04T14:13:37.065Z",
+  "ok": true,
+  "language": "en",
+  "interfaceLanguage": "en",
+  "englishDocumentsChecked": 26,
+  "markdownLocalLinksChecked": 51,
+  "sourceHash": "65acb443116e9ceb659421be4e94153b887c862e4ed8213f9b88e8dbeef4291a",
+  "applicationBehaviorChanged": false,
+  "promptOrApprovalPolicyChanged": false,
+  "windowsBinariesRebuilt": false,
+  "liveModelCalls": false,
+  "privacy": {
+    "knownStoredSecretMatches": 0,
+    "privatePathOrKeyCandidates": 0
+  },
+  "screenshots": 5,
+  "browser": [
+    {
+      "name": "desktop",
+      "width": 1440,
+      "height": 1000,
+      "noHorizontalOverflow": true,
+      "imagesDecoded": true,
+      "consoleErrors": 0,
+      "externalRequests": 0,
+      "keyboardTabs": true
+    },
+    {
+      "name": "mobile",
+      "width": 390,
+      "height": 844,
+      "noHorizontalOverflow": true,
+      "imagesDecoded": true,
+      "consoleErrors": 0,
+      "externalRequests": 0,
+      "keyboardTabs": true
+    },
+    {
+      "name": "narrow",
+      "width": 320,
+      "height": 780,
+      "noHorizontalOverflow": true,
+      "imagesDecoded": true,
+      "consoleErrors": 0,
+      "externalRequests": 0,
+      "keyboardTabs": true
+    }
+  ],
+  "fixtures": {
+    "beforeFailures": 3,
+    "afterPasses": 3,
+    "testsAndPackageIdentical": true
+  },
+  "historicalApplicationTestBaseline": "PUBLIC_VALIDATION.json; not rerun for this documentation-only localization."
+}

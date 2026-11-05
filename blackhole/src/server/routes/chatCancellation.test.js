@@ -7,6 +7,7 @@ import http from 'node:http';
 import express from 'express';
 import { setTimeout as delay } from 'node:timers/promises';
 import { createParser } from 'eventsource-parser';
+import { listenLoopback } from '../../testSupport/loopback.js';
 
 test('disconnecting a Go chat stops web tools, MCP calls and pending approvals across all four adapters', async t => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bh-chat-cancel-'));
@@ -14,7 +15,7 @@ test('disconnecting a Go chat stops web tools, MCP calls and pending approvals a
   process.env.BLACKHOLE_DISABLE_WORKSPACE_STANDARD = '1';
   const workspace = path.join(root, 'workspace');
   fs.mkdirSync(workspace);
-  const { saveConfig, defaultConfig } = await import('../../config/configStore.js');
+  const { saveConfig, loadConfig, defaultConfig } = await import('../../config/configStore.js');
   const { createChatRouter } = await import('./chat.js');
   const { createMcpRouter } = await import('./mcp.js');
   const { listPendingApprovals, respondToApproval } = await import('../../security/approvalGate.js');
@@ -28,11 +29,10 @@ test('disconnecting a Go chat stops web tools, MCP calls and pending approvals a
   app.use(express.json());
   app.use(createChatRouter());
   app.use(createMcpRouter());
-  const server = app.listen(0, '127.0.0.1');
-  await new Promise(resolve => server.once('listening', resolve));
+  const server = await listenLoopback(http.createServer(app));
   const base = `http://127.0.0.1:${server.address().port}`;
   const web = http.createServer((_req, res) => { res.writeHead(200, { 'Content-Type': 'text/html' }); res.write('<html>'); });
-  await new Promise(resolve => web.listen(0, '127.0.0.1', resolve));
+  await listenLoopback(web);
   const webUrl = `http://127.0.0.1:${web.address().port}`;
   t.after(async () => {
     for (const pending of listPendingApprovals()) respondToApproval(pending.id, 'reject');
@@ -173,6 +173,80 @@ test('disconnecting a Go chat stops web tools, MCP calls and pending approvals a
     assert.deepEqual(await client.callTool('stats'), { cancellations: 1, held: 0 });
     assert.equal(client.initialized, true);
     assert.equal(client.peer.pending.size, 0);
+  });
+  for (const provider of ['opengo', 'llamacpp']) {
+    await t.test(`${provider} truncation saves a failed checkpoint without executing partial tools; explicit resume completes`, async sub => {
+      const originalConfig = loadConfig();
+      sub.after(() => saveConfig(originalConfig));
+      const { LlamaCppRuntime } = await import('../../runtime/llamaCppRuntime.js');
+      sub.mock.method(LlamaCppRuntime.prototype, 'ensureServerRunning', async () => true);
+      saveConfig({ ...defaultConfig, workspaceRoot: workspace, activeModel: `${provider}:fixture`,
+        llamaCppUrl: 'http://model-fixture.test', opengoEnabled: true, opengoBaseUrl: 'http://model-fixture.test',
+        agentModelRoutingEnabled: false, agentMemoryEnabled: false });
+      let calls = 0;
+      let limited = true;
+      sub.mock.method(globalThis, 'fetch', (url, options) => {
+        if (!String(url).startsWith('http://model-fixture.test/')) return realFetch(url, options);
+        calls++;
+        return Promise.resolve(new Response(limited
+          ? frame({ choices: [{ delta: { content: JSON.stringify({ tool_calls: [{ tool: 'write_file', params: { path: 'must-not-exist.txt', content: 'partial action' } }] }) }, finish_reason: 'length' }] })
+          : frame({ choices: [{ delta: { content: 'The isolated fixture is available. No file changes or other actions were requested or performed.' }, finish_reason: 'stop' }] }) + 'data: [DONE]\n\n',
+        { headers: { 'Content-Type': 'text/event-stream' } }));
+      });
+      const messages = [{ role: 'user', content: 'Only report your current status in a sentence; no changes are needed.' }];
+      const response = await realFetch(`${base}/chat`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ messages, providerSessionId: `${provider}-truncation` }) });
+      const events = [];
+      const parser = createParser({ onEvent: event => events.push(JSON.parse(event.data)) });
+      parser.feed(await response.text());
+      assert.equal(events.find(event => event.type === 'end').outcome.reason, 'output_token_limit');
+      assert.equal(events.find(event => event.type === 'recovery').modelFailure.provider, provider);
+      assert.equal(calls, 1);
+      assert.equal(fs.existsSync(path.join(workspace, 'must-not-exist.txt')), false);
+      const checkpoint = store.loadLatest();
+      assert.equal(checkpoint.outcome.status, 'failed');
+      limited = false;
+      const resumed = await realFetch(`${base}/chat/resume-checkpoint`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ sessionId: checkpoint.sessionId, messages }) });
+      const resumedEvents = [];
+      createParser({ onEvent: event => resumedEvents.push(JSON.parse(event.data)) }).feed(await resumed.text());
+      assert.equal(resumedEvents.find(event => event.type === 'end').outcome.status, 'completed');
+      assert.equal(store.loadLatest().sessionId, checkpoint.sessionId);
+      assert.equal(calls, 2);
+      assert.equal(fs.existsSync(path.join(workspace, 'must-not-exist.txt')), false);
+    });
+  }
+  await t.test('disconnecting manual conversation compaction cancels its summarizer without modifying history', async sub => {
+    const originalConfig = loadConfig();
+    sub.after(() => saveConfig(originalConfig));
+    saveConfig({ ...defaultConfig, workspaceRoot: workspace, activeModel: 'opencode-go:glm-5.3-flash',
+      opencodeGoEnabled: true, opencodeGoApiKey: 'fixture-key', agentModelRoutingEnabled: false,
+      agentMemoryEnabled: false });
+    let started = false;
+    let cancelled = false;
+    let calls = 0;
+    sub.mock.method(globalThis, 'fetch', (url, options) => {
+      if (!String(url).startsWith('https://opencode.ai/inference/go/')) return realFetch(url, options);
+      started = true;
+      calls++;
+      return new Promise((_resolve, reject) => {
+        options.signal.addEventListener('abort', () => { cancelled = true; reject(options.signal.reason); }, { once: true });
+      });
+    });
+    const messages = Array.from({ length: 14 }, (_, i) => ({ role: i % 2 ? 'assistant' : 'user', content: `History ${i}: ${'detail '.repeat(80)}` }));
+    const original = JSON.stringify(messages);
+    const stop = new AbortController();
+    sub.after(() => stop.abort());
+    const request = realFetch(`${base}/chat/compress`, { method: 'POST', headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ messages, providerSessionId: 'cancel-compaction' }), signal: stop.signal });
+    const rejected = assert.rejects(request, { name: 'AbortError' });
+    await waitFor(() => started);
+    stop.abort();
+    await rejected;
+    await waitFor(() => cancelled);
+    assert.equal(calls, 1);
+    assert.equal(JSON.stringify(messages), original);
+    assert.equal(fs.existsSync(path.join(root, 'data', 'chats_history.json')), false);
   });
   await t.test('disconnecting a direct MCP API request cancels only that tool and preserves the server', async sub => {
     let started = false;

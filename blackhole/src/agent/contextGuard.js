@@ -4,6 +4,8 @@
  * compacting long tool results and sliding middle turns when approaching context limits.
  */
 
+export const OBSERVATION_EVIDENCE = Symbol('BlackHole observation evidence');
+
 export function estimateTextTokens(text = '') {
   if (!text) return 0;
   const str = String(text);
@@ -44,15 +46,17 @@ export function compactToolResultContent(content, maxChars = 600) {
   const toolMatch = text.match(/^\[Tool Result \(Tool: ([^)]+)\)\]/);
   const prefix = toolMatch ? toolMatch[0] : '[Tool Result]';
   const remaining = text.slice(prefix.length).trim();
+  const readHint = toolMatch?.[1] === 'read_file'
+    ? '\nRead output is incomplete. Use read_file startLine and lineCount to retrieve the missing region.\n' : '';
 
-  const budget = Math.max(0, maxChars - prefix.length - 100);
+  const budget = Math.max(0, maxChars - prefix.length - 100 - readHint.length);
   const headChars = Math.ceil(budget * 0.65);
   const tailChars = budget - headChars;
   const head = remaining.slice(0, headChars);
   const tail = tailChars ? remaining.slice(-tailChars) : '';
   const trimmed = remaining.length - budget;
 
-  return `${prefix}\n${head}\n\n... [Trimmed ${trimmed} chars to preserve context window] ...\n\n${tail}`;
+  return `${prefix}\n${head}\n\n... [Trimmed ${trimmed} chars to preserve context window] ...\n${readHint}\n${tail}`;
 }
 
 export function isToolResultMessage(message) {
@@ -74,7 +78,7 @@ export function boundToolMessages(messages = [], maxChars = 6000) {
 
 export function userGoalIndices(messages, userGoal) {
   const indices = messages.flatMap((msg, i) => msg.role === 'user' && !isToolResultMessage(msg) &&
-    !/^\[(?:Compacted context summary|Loop Guard|Tool Batch Guard|System Directive|Checkpoint Resume Context)/.test(String(msg.content || '')) ? [i] : []);
+    !/^\[(?:Compacted context summary|Loop Guard|Tool Batch Guard|System Directive|Checkpoint Resume Context|Checkpoint Verification Result|Tool Call Failure Detected|Requested File Evidence|Observation-Only Edit Redirect|Premature Completion Guard)/.test(String(msg.content || '')) ? [i] : []);
   const explicit = userGoal ? messages.findLastIndex(msg => msg.role === 'user' && msg.content === userGoal) : -1;
   return [...new Set([indices[0], explicit >= 0 ? explicit : indices.at(-1)].filter(i => i !== undefined))];
 }
@@ -88,10 +92,20 @@ export function applySlidingContextGuard(messages = [], systemPrompt = '', limit
 
   const currentTokens = () => estimateConversationTokens(output, systemPrompt);
 
-  // Even the newest tool result must fit; user instructions are never clipped.
+  const goals = userGoalIndices(output, userGoal);
+  const protectedMessages = new Set(goals.map(i => output[i]));
+  const evidence = new Map();
+  for (let i = (goals.at(-1) ?? -1) + 1; i < output.length; i++) {
+    if (isToolResultMessage(output[i]) && output[i][OBSERVATION_EVIDENCE]) evidence.set(output[i][OBSERVATION_EVIDENCE], output[i]);
+  }
+  for (const message of evidence.values()) protectedMessages.add(message);
+  const latestToolIndex = output.findLastIndex(isToolResultMessage);
+  const latestTool = latestToolIndex > (goals.at(-1) ?? -1) ? output[latestToolIndex] : null;
+
+  // Retire old context before clipping the source evidence just requested.
   for (let i = 0; i < output.length && currentTokens() > targetTokenLimit; i++) {
     const msg = output[i];
-    if (isToolResultMessage(msg)) {
+    if (msg !== latestTool && !protectedMessages.has(msg) && isToolResultMessage(msg)) {
       const originalLength = msg.content.length;
       if (originalLength > 600) {
         msg.content = compactToolResultContent(msg.content, 600);
@@ -103,13 +117,25 @@ export function applySlidingContextGuard(messages = [], systemPrompt = '', limit
     }
   }
 
-  const protectedMessages = new Set(userGoalIndices(output, userGoal).map(i => output[i]));
   while (currentTokens() > targetTokenLimit) {
-    const index = output.findIndex((msg, i) => !protectedMessages.has(msg) && i < output.length - 2);
-    const removable = index >= 0 ? index : output.findIndex(msg => !protectedMessages.has(msg));
+    const index = output.findIndex((msg, i) => msg !== latestTool && !protectedMessages.has(msg) && i < output.length - 2);
+    const removable = index >= 0 ? index : output.findIndex(msg => msg !== latestTool && !protectedMessages.has(msg));
     if (removable < 0) break;
     output.splice(removable, 1);
     removed++;
+  }
+
+  if (latestTool && currentTokens() > targetTokenLimit && latestTool.content.length > 200) {
+    const original = latestTool.content;
+    const available = targetTokenLimit - estimateConversationTokens(output.filter(message => message !== latestTool), systemPrompt);
+    let low = 200, high = original.length - 1, best = null;
+    while (low <= high) {
+      const mid = Math.floor((low + high) / 2);
+      const candidate = compactToolResultContent(original, mid);
+      if (estimateTextTokens(candidate) <= available) { best = candidate; low = mid + 1; }
+      else high = mid - 1;
+    }
+    if (best) { latestTool.content = best; compacted++; }
   }
 
   return {

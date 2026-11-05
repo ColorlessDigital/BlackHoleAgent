@@ -1,43 +1,71 @@
 # BlackHole Public Change Summary
 
-Source snapshot: 2026-11-04. This is a public summary, not the internal raw work
-log. Private conversations, credentials, machine-specific paths and diagnostic
-profiles are deliberately not distributed. Original records remain private.
+Current source baseline: stabilized 31. Internal conversations, raw diagnostics,
+account details, machine-specific user paths and private work logs are excluded.
+This document summarizes implemented behavior and scoped public evidence.
 
-## Implemented Areas
+## Development Stages
 
-- llama.cpp local GGUF lifecycle, configurable runtime parameters,
-  startup/request timeouts and progress reporting.
-- Optional OpenAI-compatible gateways and OpenCode Go; protocol/model catalog
-  handling, per-model output budgets, structured streaming error information.
-- Separate reasoning records and visible assistant responses.
-- File/terminal/web/MCP tools, planning, validation, execution journal,
-  checkpoints and explicit recovery state.
-- Bounded automatic background indexing for broad workspaces, cancellation
-  yielding, concurrent scan ownership and individual file-error isolation.
-- Context budgets against the selected route and bounded summarization.
-- Scoped validation of created directories and edited project files.
-- React desktop UI, operational status/log views and VS Code integration.
-- Windows source fingerprints, packaging and signing scripts.
+| Stage | Public summary |
+|---|---|
+| Local agent foundation | llama.cpp GGUF lifecycle, file/terminal/web/MCP tools, separate optional providers |
+| Runtime and status | Configurable request/startup limits, heartbeat, structured errors and cancellation |
+| Recovery | Journal/checkpoints, named resume, file-effect observations, atomic-save/rollback reporting |
+| Long conversations | Routed context budgets, compaction, current-request quotation evidence |
+| Multi-workspace resources | Four-entry strong LRU ownership with weak active-caller sharing |
+| Behavioral verification | Existing test runner/loader preservation, bounded test discovery, honest unverified stops |
+| Publication | English docs and scripted UI illustrations; sanitized source/evidence and checksummed Windows assets |
 
-## Recorded Stability Baseline
+## Current Build-31 Results
 
-The maintainer's local release `go-stabilized-13` recorded 404 backend tests,
-10 frontend tests, repeated focused tests and release checks with extension
-host E2E excluded. A fixed packaged Gemini test matrix completed 19 runs twice;
-a separate timed-out checkpoint was resumed on that package. These are
-historical local results, not independent public benchmark scores or a claim
-of reliability on arbitrary large repositories or long unattended sessions.
-Raw provider conversations and machine-bound evidence are not in this ZIP.
+- Backend: 508 total, 507 passed, 1 native-symlink privilege skip, three consecutive runs.
+- Frontend: 10/10; release metadata: 5/5; release checks with extension-host E2E excluded.
+- Completion regressions: 9/9, including expected incomplete/unverified outcomes.
+  The same immutable build-30 baseline passed 2/9.
+- Real Go tasks: 8/8, four seeded task types repeated twice, using GLM diagnostic
+  context/output 8192 and the product default verification engine.
+- Real Qwen3 4B implementation fixes: 3/3; other stream/cancel checks bring the
+  local diagnostic total to 10/10.
+- An 80-workspace explicit-GC retention control passed on the same package.
 
-## Public Export
+Pre-existing tests and package metadata were immutable fixture inputs.
+No user credential/model/performance setting was saved by the diagnostics.
+See [sanitized evidence](../../docs/validation/stabilized-31.json).
 
-Apache-2.0 was selected by the owner. The export retains production code,
-tests, fixtures, build scripts, lockfiles and workspace standards. Models,
-dependencies, runtime binaries, old builds, certificates, user state and Git
-history are excluded. Personal fallback paths in the diagnostic proof helper
-are replaced with repository-relative defaults in this public copy. See
-`PUBLIC_SOURCE_PROVENANCE.json` at the repository root.
+## Root Causes Addressed
 
-Prompt content, approval policy and executable agent behavior were not changed
-for the export. See [WALKTHROUGH.md](WALKTHROUGH.md) for continued development.
+The previous verifier could treat skipped tests and syntax-only success as task
+completion. Standalone tests for newly created files could be missed, and direct
+Node test invocation could discard a project's loader or runner. In a parent
+Node test process, inherited NODE_TEST_CONTEXT could even skip child tests with
+exit code zero.
+
+Build31 separates actual assertion failure from unavailable behavioral evidence.
+The latter stops with saved changes and no speculative source-repair loop.
+Actual failing assertions still use bounded repair and re-verification.
+The application does not automatically generate tests merely to mark a task done.
+
+## Historical Evidence
+
+Build30's natural-GC hour passed 553/553 including one intentional cancellation.
+It belongs to build30, not build31. Its strong cache stayed at four; RSS still
+fluctuated. The explicit-GC control demonstrated unused-engine retention; it did
+not prove all memory leaks or temporary allocations impossible.
+
+Build29's prior long-conversation/checkpoint results and build27's 4B first failure
+remain historical. Build13 was the previous public Windows snapshot with 404
+backend checks and older dependency/installer warnings.
+[Version history](../../docs/HISTORY.md).
+
+## Export and Limits
+
+Public source is independently reinstalled and checked; its results are
+[PUBLIC_VALIDATION.json](../../PUBLIC_VALIDATION.json), not copied live-model logs.
+Diagnostic default paths are portable and recorded in
+[provenance](../../PUBLIC_SOURCE_PROVENANCE.json). Executable agent behavior,
+prompts and approval policy are not changed for publication.
+
+Existing assertions cannot prove arbitrary requirements or their own quality.
+Unknown successful project test commands retain their declared-command evidence
+source. Other languages/artifacts, clean-PC installation, visible extension-host
+E2E, public-CA trust and all-model reliability remain outside these measurements.

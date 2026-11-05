@@ -21,14 +21,14 @@
   </header>
   <main id="main">
     <section class="intro wrap" aria-labelledby="title">
-      <div class="eyebrow">LOCAL-FIRST CODING AGENT <span>In development · Apache-2.0</span></div>
+      <div class="eyebrow">LOCAL-FIRST CODING AGENT <span>Stabilized 31 · Development prerelease · Apache-2.0</span></div>
       <h1 id="title">BlackHole</h1>
       <p class="lead">A tool-using coding agent,<br>starting with your local model.</p>
-      <p class="intro-copy">Plan changes, edit files, and verify with tests.<br class="desktop-break"> Inspect progress and failures, then continue from a checkpoint.</p>
-      <div class="intro-links"><a class="primary" href="https://github.com/ColorlessDigital/BlackHoleAgent/releases/tag/v1.0.0-stabilized.13">Windows development build</a><a class="text-link" href="#start">Set up from source <span aria-hidden="true">→</span></a></div>
+      <p class="intro-copy">Plan changes, edit files, and check their behavior.<br class="desktop-break"> Keep saved edits distinct from verified results and recoverable failures.</p>
+      <div class="intro-links"><a class="primary" href="https://github.com/ColorlessDigital/BlackHoleAgent/releases/tag/v1.0.0-stabilized.31">Download build 31</a><a class="text-link" href="#start">Set up from source <span aria-hidden="true">→</span></a><a class="text-link" href="https://github.com/ColorlessDigital/BlackHoleAgent/blob/main/docs/HISTORY.md">Release history</a></div>
       <figure class="product-figure">
         <a href="images/overview.png" aria-label="Open the full BlackHole demo screenshot"><img src="images/overview.png" width="1600" height="1000" alt="Actual BlackHole frontend with public demo data: workspace files on the left, agent conversation in the center, code on the right and execution logs below" fetchpriority="high"></a>
-        <figcaption><strong>Real UI, scripted data.</strong> Responses and logs illustrate the workflow. They are not live model output or performance measurements.</figcaption>
+        <figcaption><strong>Real build-31 UI, scripted public data.</strong> Responses and logs illustrate the workflow. They are not live model output or performance measurements.</figcaption>
       </figure>
       <dl class="summary-strip">
         <div><dt>Local inference</dt><dd>llama.cpp + GGUF</dd></div>
@@ -39,9 +39,10 @@
     <section class="section wrap" id="features" aria-labelledby="features-title">
       <div class="section-heading"><p class="eyebrow">WHAT IT DOES</p><h2 id="features-title">Beyond an answer. A workflow.</h2><p>BlackHole is not a model trained by this project. It connects your selected model to development tools.</p></div>
       <div class="feature-row"><span class="number">01</span><h3>Choose the model</h3><p>Select a GGUF model and run local inference with llama.cpp. OpenAI-compatible gateways and OpenCode Go are available as optional providers.</p></div>
-      <div class="feature-row"><span class="number">02</span><h3>Edit and verify</h3><p>Read the workspace, use file and terminal tools, and connect plans to execution results and verification. Existing validation and approval steps remain in place.</p></div>
+      <div class="feature-row"><span class="number">02</span><h3>Verify behavior</h3><p>Keep the existing project test runner and loader. For supported source changes, missing, zero or all-skipped behavioral checks leave saved edits unverified; syntax success alone is not completion. Existing approvals remain in place.</p></div>
       <div class="feature-row"><span class="number">03</span><h3>Inspect progress</h3><p>Review status, heartbeats, execution timelines and logs. Model-supplied reasoning is displayed in separate records rather than mixed into the chat answer.</p></div>
       <div class="feature-row"><span class="number">04</span><h3>Continue after interruption</h3><p>Record checkpoints and an execution journal, manage context budgets, and explicitly resume from an available recovery point after addressing the failure.</p></div>
+      <div class="feature-row"><span class="number">05</span><h3>Bound cached workspaces</h3><p>Retain four recently used context engines with weak sharing for active callers. Unused indexes can be collected without clearing an active scan. This is not a total-RAM quota.</p></div>
     </section>
     <section class="demo-band" id="demo" aria-labelledby="demo-title">
       <div class="wrap section">
@@ -50,6 +51,7 @@
           <button type="button" role="tab" id="tab-edit" aria-controls="panel-edit" aria-selected="true" tabindex="0">Multi-file editing</button>
           <button type="button" role="tab" id="tab-timeline" aria-controls="panel-timeline" aria-selected="false" tabindex="-1">Execution timeline</button>
           <button type="button" role="tab" id="tab-recovery" aria-controls="panel-recovery" aria-selected="false" tabindex="-1">Failure and recovery</button>
+          <button type="button" role="tab" id="tab-unverified" aria-controls="panel-unverified" aria-selected="false" tabindex="-1">Behavior unverified</button>
         </div>
         <div class="demo-panel" id="panel-edit" role="tabpanel" aria-labelledby="tab-edit">
           <figure><a href="images/overview.png"><img src="images/overview.png" width="1600" height="1000" alt="Scripted three-file edit and verification in the actual UI" loading="lazy"></a><figcaption>Public illustration with scripted responses and logs</figcaption></figure>
@@ -63,6 +65,10 @@
           <figure><a href="images/recovery.png"><img src="images/recovery.png" width="1600" height="1000" alt="Scripted timeout reason with a checkpoint resume control" loading="lazy"></a><figcaption>Injected timeout illustration, without a provider request</figcaption></figure>
           <div class="demo-copy"><span class="small-label">EXAMPLE 03</span><h3>Understand the failure.<br>Resume from a checkpoint.</h3><ol><li>Inspect the cause and any partial output</li><li>Check the available checkpoint</li><li>Address authentication, limits or setup</li><li>Resume and verify the resulting files</li></ol><p class="muted">Automatic recovery from every error and exactly-once external execution are not guaranteed.</p></div>
         </div>
+        <div class="demo-panel" id="panel-unverified" role="tabpanel" aria-labelledby="tab-unverified" hidden>
+          <figure><a href="images/unverified.png"><img src="images/unverified.png" width="1600" height="1000" alt="Scripted build-31 behavioral-verification-unavailable outcome with preserved edits and checkpoint" loading="lazy"></a><figcaption>Scripted illustration; no provider call or user workspace</figcaption></figure>
+          <div class="demo-copy"><span class="small-label">EXAMPLE 04</span><h3>Saved is not the same<br>as behaviorally verified.</h3><p>A syntax check can pass while code is wrong. If no applicable behavioral check runs, source changes remain saved with an incomplete, unverified outcome.</p><ol><li>Inspect the verification reason</li><li>Supply an appropriate existing behavioral check</li><li>Resume the checkpoint and verify again</li></ol><p class="muted">The application does not automatically invent tests or create unrelated files to claim success. Passing assertions still do not prove every requirement.</p></div>
+        </div>
         <details class="animation"><summary>Workflow GIF: planning → editing → verification</summary><img src="images/workflow-demo.gif" width="960" height="600" alt="A loop of scripted planning, editing and verification frames from the actual UI" loading="lazy"><p class="muted">Static frames encoded in sequence, not a recording of execution time or model response speed.</p></details>
         <noscript><p>The multi-file view is shown above. Open the original <a href="images/timeline.png">timeline</a> or <a href="images/recovery.png">recovery</a> image without JavaScript.</p></noscript>
       </div>
@@ -72,28 +78,37 @@
       <figure class="architecture"><img src="images/architecture.svg" width="1280" height="640" alt="UI connects to the agent core, local or optional cloud models, validated tools, verification evidence and checkpoints for recovery" loading="lazy"></figure>
       <p class="muted">Local inference is separate from external communication. Web tools, MCP services and cloud providers can make external requests.</p>
     </section>
+    <section class="section wrap" id="validation" aria-labelledby="validation-title">
+      <div class="section-heading"><p class="eyebrow">VERSIONED EVIDENCE</p><h2 id="validation-title">Measured scope, not blanket promises.</h2><p>Maintainer executable tests and independently rerun public-source checks are separate records. The UI illustrations above are not these measurements.</p></div>
+      <dl class="limits">
+        <div><dt>Build 31 checks</dt><dd>Backend 507 passed + 1 privilege-related skip, three runs; frontend 10/10. Completion regressions 9/9 include correct unverified stops.</dd></div>
+        <div><dt>Actual coding tasks</dt><dd>Go 8/8 and local Qwen3 4B implementation fixes 3/3, using the default product verifier and immutable existing assertions. Small seeded tasks, not arbitrary-repository benchmarks.</dd></div>
+        <div><dt>Historical build 30</dt><dd>Natural-GC 60-minute run: 553/553, including an intentional cancellation. No new build-31 hour or 35B coding run is claimed.</dd></div>
+        <div><dt>Inspect the records</dt><dd><a href="validation/stabilized-31.json">Build-31 evidence</a> · <a href="validation/stabilized-30.json">Historical build-30 evidence</a> · <a href="https://github.com/ColorlessDigital/BlackHoleAgent/blob/main/PUBLIC_VALIDATION.json">Fresh public-source checks</a></dd></div>
+      </dl>
+    </section>
     <section class="start-band" id="start" aria-labelledby="start-title">
       <div class="section wrap start-grid">
         <div><p class="eyebrow">START LOCALLY</p><h2 id="start-title">Bring your model.<br>Keep settings on your PC.</h2><p>Start in PowerShell at the root of the complete Windows x64 source tree. Bootstrap verifies official runtime archives with SHA-256 and installs the three lockfile-defined dependency trees.</p><p>Download GGUF weights separately, then select the model and workspace in Settings. Enter provider credentials locally in the app.</p></div>
         <div><pre aria-label="Windows PowerShell quick start"><code>powershell -NoProfile -ExecutionPolicy Bypass `
   -File tools/bootstrap-windows.ps1
 $env:Path = (Join-Path $PWD `
-  'node-v24.21.0-win-x64') + ';' + $env:Path
+  'node-v24.22.2-win-x64') + ';' + $env:Path
 Set-Location blackhole
 npm run build:frontend
-npm start</code></pre><p class="muted">Node 24.21.0 · llama.cpp b9553 Vulkan x64<br>Downloads and installation require internet access. No model or credential is included.</p></div>
+npm start</code></pre><p class="muted">Node 24.22.2 · llama.cpp b9553 Vulkan x64<br>Downloads and installation require internet access. No model or credential is included.</p></div>
       </div>
     </section>
     <section class="section wrap" id="limits" aria-labelledby="limits-title">
       <div class="section-heading"><p class="eyebrow">SCOPE &amp; LIMITS</p><h2 id="limits-title">Clear about the current scope.</h2></div>
       <dl class="limits">
-        <div><dt>Recorded checks</dt><dd>A clean public-source install passed 404 backend and 10 frontend tests, frontend build, extension packaging and release checks with extension-host E2E excluded. This page is not a new live-model evaluation.</dd></div>
+        <div><dt>Public-source checks</dt><dd>The exported source is reinstalled from its lockfiles and checked separately. The source-validation record distinguishes this run from the maintainer's immutable executable and live-model tests. Visible extension-host E2E is excluded.</dd></div>
         <div><dt>Not guaranteed</dt><dd>Arbitrary task resolution, large-repository or unattended durability, cross-PC installation trust, and Linux/macOS release compatibility. Model performance and speed depend on the model, hardware and configuration.</dd></div>
-        <div><dt>Known findings</dt><dd>Existing dependency audits include Critical/High findings. Publishing the source, documentation or archives does not resolve those findings or establish production readiness.</dd></div>
-        <div><dt>Windows signing</dt><dd>The existing build creates or uses a self-signed CA and trusts it in the current user's Root store. Setup also changes certificate stores. This differs from public CA signing; inspect the actual scripts before building or distributing.</dd></div>
+        <div><dt>Known findings</dt><dd>Development dependency advisories remain; see the current audit record. The older build-13 Critical/High findings are preserved as history, not reassigned to a different lockfile or silently erased.</dd></div>
+        <div><dt>Windows signing</dt><dd>Build31 Setup does not automatically import/remove trust-store certificates. Legacy13/14 did. The developer signing script still provisions a self-signed CA on the build PC; current-PC trust is not public-CA or clean-PC proof.</dd></div>
       </dl>
     </section>
   </main>
-  <footer class="footer"><div class="wrap footer-row"><strong>BLACKHOLE</strong><p>Public technical overview · Scripted demos without personal conversations or credentials</p><a href="license.txt">Apache-2.0</a></div></footer>
+  <footer class="footer"><div class="wrap footer-row"><strong>BLACKHOLE</strong><p>Copyright 2026 KGE7 · Build 31 · Scripted public demos · No personal conversations or credentials</p><a href="license.txt">Apache-2.0</a></div></footer>
 </body>
 </html>

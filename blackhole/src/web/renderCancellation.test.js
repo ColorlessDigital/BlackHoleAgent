@@ -1,4 +1,5 @@
 import test from 'node:test';
+import { listenLoopback } from '../testSupport/loopback.js';
 import assert from 'node:assert/strict';
 import fs from 'node:fs';
 import os from 'node:os';
@@ -28,7 +29,7 @@ test('render cancellation closes the isolated headless browser and its stalled n
     res.on('close', () => { closed = true; });
     started();
   });
-  await new Promise(resolve => server.listen(0, '127.0.0.1', resolve));
+  await listenLoopback(server);
   t.after(async () => {
     await new Promise(resolve => { server.close(resolve); server.closeAllConnections(); });
     fs.rmSync(root, { recursive: true, force: true });

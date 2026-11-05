@@ -16,7 +16,7 @@ jobs:
           fetch-depth: 0
       - uses: actions/setup-node@v4
         with:
-          node-version: '24.21.0'
+          node-version: '24.22.2'
           cache: npm
           cache-dependency-path: |
             blackhole/package-lock.json

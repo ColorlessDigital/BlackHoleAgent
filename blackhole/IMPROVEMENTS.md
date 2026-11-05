@@ -1,5 +1,10 @@
 # BlackHole Technical Improvements: Historical Summary
 
+Current source: stabilized31. This older architecture narrative remains historical;
+the latest behavioral-verification and workspace-cache work is in
+[WORK_LOG.md](docs/WORK_LOG.md). Current source-install results are recorded
+separately from immutable-binary tests in the repository-root PUBLIC_VALIDATION.json.
+
 This document summarizes an earlier architecture, debugging and packaging stage.
 Its original test count and size figures are historical, not current release
 measurements. Some filenames below refer to the pre-TypeScript implementation;

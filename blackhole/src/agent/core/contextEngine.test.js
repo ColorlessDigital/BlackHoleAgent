@@ -3,7 +3,7 @@ import assert from 'node:assert/strict';
 import fs from 'fs';
 import os from 'os';
 import path from 'path';
-import { ProjectContextEngine } from './contextEngine.js';
+import { ProjectContextEngine, getContextEngine, getContextEngineCacheStats, clearAllContextEngineCaches } from './contextEngine.js';
 
 function makeTempWorkspace() {
   return fs.mkdtempSync(path.join(os.tmpdir(), 'blackhole-context-engine-'));
@@ -129,4 +129,87 @@ test('a queued consumer can rebuild the workspace after the owning scan is cance
   await waiter;
   assert.equal(engine.fileMap.size, 90);
   assert.ok(engine.lastScanAt > 0);
+});
+
+test('workspace cache retains at most four engines during workspace churn', t => {
+  clearAllContextEngineCaches();
+  t.after(clearAllContextEngineCaches);
+  for (let index = 0; index < 100; index++) getContextEngine(path.join(os.tmpdir(), `cache-bound-${index}`));
+  assert.deepEqual(getContextEngineCacheStats(), {
+    maxRetainedWorkspaces: 4, retainedWorkspaces: 4, trackedWorkspaces: 100, evictions: 96
+  });
+});
+
+test('workspace cache refreshes recent usage before evicting an older engine', t => {
+  clearAllContextEngineCaches();
+  t.after(clearAllContextEngineCaches);
+  const roots = Array.from({ length: 5 }, (_, i) => path.join(os.tmpdir(), `cache-lru-${i}`));
+  const first = getContextEngine(roots[0]);
+  for (const root of roots.slice(1, 4)) getContextEngine(root);
+  assert.equal(getContextEngine(roots[0]), first);
+  getContextEngine(roots[4]);
+  assert.equal(getContextEngineCacheStats().evictions, 1);
+  assert.equal(getContextEngine(roots[0]), first);
+  assert.equal(getContextEngineCacheStats().evictions, 1);
+  getContextEngine(roots[1]);
+  assert.equal(getContextEngineCacheStats().evictions, 2);
+});
+
+test('an evicted engine still held by a caller is shared without losing indexes', async t => {
+  clearAllContextEngineCaches();
+  t.after(clearAllContextEngineCaches);
+  const root = makeTempWorkspace();
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  fs.writeFileSync(path.join(root, 'value.js'), 'export const value = 7;');
+  const active = getContextEngine(root);
+  await active.scanWorkspace();
+  active.trackFileChange('value.js');
+  for (let i = 0; i < 10; i++) getContextEngine(path.join(root, `other-${i}`));
+  assert.equal(getContextEngine(root), active);
+  assert.equal(active.fileMap.size, 1);
+  assert.deepEqual(active.getRecentlyChangedFiles(), ['value.js']);
+  assert.ok(active.getSymbolReferences('value').length);
+});
+
+test('workspace churn does not detach or cancel an active shared scan', async t => {
+  clearAllContextEngineCaches();
+  t.after(clearAllContextEngineCaches);
+  const root = makeTempWorkspace();
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  for (let i = 0; i < 32; i++) fs.writeFileSync(path.join(root, `${i}.md`), `${i}`);
+  const active = getContextEngine(root);
+  const owner = active.scanWorkspace();
+  const pending = active.pendingScan;
+  for (let i = 0; i < 12; i++) getContextEngine(path.join(root, `other-${i}`));
+  const shared = getContextEngine(root);
+  assert.equal(shared, active);
+  assert.equal(shared.pendingScan, pending);
+  await Promise.all([owner, shared.scanWorkspace()]);
+  assert.equal(shared.fileMap.size, 32);
+  assert.equal(shared.pendingScan, null);
+});
+
+test('workspace identity normalizes relative paths and Windows case without touching files', t => {
+  clearAllContextEngineCaches();
+  t.after(clearAllContextEngineCaches);
+  const root = path.join(os.tmpdir(), 'Cache-Identity');
+  const engine = getContextEngine(root);
+  assert.equal(getContextEngine(path.join(root, '.')), engine);
+  if (process.platform === 'win32') assert.equal(getContextEngine(root.toUpperCase()), engine);
+  else assert.notEqual(getContextEngine(root.toUpperCase()), engine);
+});
+
+test('explicit cache clearing does not mutate engines held by running callers', async t => {
+  clearAllContextEngineCaches();
+  t.after(clearAllContextEngineCaches);
+  const root = makeTempWorkspace();
+  t.after(() => fs.rmSync(root, { recursive: true, force: true }));
+  fs.writeFileSync(path.join(root, 'a.md'), 'unchanged');
+  const held = getContextEngine(root);
+  await held.scanWorkspace();
+  clearAllContextEngineCaches();
+  assert.equal(getContextEngineCacheStats().retainedWorkspaces, 0);
+  assert.equal(getContextEngineCacheStats().trackedWorkspaces, 0);
+  assert.equal(held.fileMap.size, 1);
+  assert.notEqual(getContextEngine(root), held);
 });

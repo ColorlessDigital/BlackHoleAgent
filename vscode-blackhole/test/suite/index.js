@@ -1,5 +1,6 @@
 const assert = require('assert');
 const http = require('http');
+const { randomInt } = require('crypto');
 const vscode = require('vscode');
 
 module.exports.run = async function run() {
@@ -162,7 +163,7 @@ async function assertAgentTaskCommandRuns(requests) {
 }
 
 function startMockBlackHoleApi(requests) {
-  return new Promise((resolve) => {
+  return new Promise((resolve, reject) => {
     let baseUrl = '';
     const transactions = [
       createTransaction('diff-1', 'reviewed'),
@@ -255,10 +256,17 @@ function startMockBlackHoleApi(requests) {
       res.end(JSON.stringify({ error: 'not found' }));
     });
 
-    server.listen(0, '127.0.0.1', () => {
+    let attempts = 0;
+    const listen = () => server.listen(randomInt(49152, 65536), '127.0.0.1');
+    server.on('error', error => {
+      if (++attempts < 20 && ['EADDRINUSE', 'EACCES'].includes(error.code)) listen();
+      else reject(error);
+    });
+    server.once('listening', () => {
       baseUrl = `http://127.0.0.1:${server.address().port}`;
       resolve({ server, baseUrl });
     });
+    listen();
   });
 }
 

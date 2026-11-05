@@ -2,6 +2,9 @@ import fs from 'fs';
 import path from 'path';
 import { IS_WINDOWS, NODE_RUNTIME_BIN_DIR } from '../../common/paths.js';
 import { runTerminalCommand } from '../../workspace/terminalBroker.js';
+import { analyzeAstFile } from './astAnalyzer.js';
+
+const BEHAVIORAL_SOURCE_EXTENSIONS = new Set(['.js', '.mjs', '.cjs', '.jsx', '.ts', '.tsx', '.py', '.go', '.rs', '.java', '.kt', '.cs', '.c', '.cpp', '.h', '.hpp', '.rb', '.php', '.swift', '.scala', '.vue', '.svelte']);
 
 export class VerificationEngine {
   constructor(workspaceRoot = '.', options = {}) {
@@ -70,6 +73,7 @@ export class VerificationEngine {
       const result = await this.runCommand(resolved.command, {
         cwd: resolved.cwd || this.workspaceRoot,
         timeout: resolved.timeout || 120000,
+        env: { NODE_TEST_CONTEXT: undefined },
         abortSignal
       });
       abortSignal?.throwIfAborted();
@@ -92,7 +96,8 @@ export class VerificationEngine {
         output: result.output,
         error: result.error,
         ...(environmentIssue ? { failureKind: 'environment', environmentIssue } : {}),
-        analysis
+        analysis,
+        ...(action === 'test' ? { behavioral: this.describeTestEvidence({ ...result, ok }, resolved.command) } : {})
       };
     } catch (err) {
       if (abortSignal?.aborted || err.name === 'AbortError') throw err;
@@ -217,20 +222,35 @@ export class VerificationEngine {
       const engine = new VerificationEngine(scope.root, { nodeExecutable: this.nodeExecutable, runCommand: this.runCommand, includeChildProjects: false });
       // A changed package may run its own scripts, never a sibling package's fallback.
       const relativeFiles = scope.files.map(file => path.relative(scope.root, path.resolve(this.workspaceRoot, file)));
-      const tests = (targets.testFiles || []).filter(file => scope.files.includes(file))
+      let tests = (targets.testFiles || []).filter(file => scope.files.includes(file))
         .map(file => path.relative(scope.root, path.resolve(this.workspaceRoot, file)));
       const plan = engine.buildVerificationPlan({ changedFiles: relativeFiles });
+      const declaredTest = scope.project && engine.resolveVerificationCommand('test', null, engine.detectProjectInfo());
+      if (!declaredTest) tests = engine.discoverNodeTests(relativeFiles, tests);
+      const requiresBehavior = relativeFiles.some(file => BEHAVIORAL_SOURCE_EXTENSIONS.has(path.extname(file).toLowerCase()));
       for (const action of actions) {
         abortSignal?.throwIfAborted();
-        const custom = action === 'test' ? engine.buildTargetedNodeTestCommand(tests)
+        const custom = action === 'test' ? (declaredTest ? null : engine.buildTargetedNodeTestCommand(tests))
           : action === 'syntax' ? engine.buildTargetedNodeSyntaxCommand(plan.syntaxFiles)
             : action === 'lint' ? engine.buildTargetedLintCommand(plan.lintFiles) : null;
         const result = !custom && (!scope.project || action === 'syntax')
           ? { ok: true, skipped: true, action, reason: 'No applicable check for the changed files.' }
           : await engine.runVerification(action, custom, { abortSignal });
+        if (action === 'test') {
+          result.behavioral ||= { status: 'unverified', reason: 'no_behavioral_check' };
+          if (requiresBehavior && result.ok && result.behavioral.status !== 'passed') {
+            result.ok = false;
+            result.failureKind = 'unverified';
+            result.reason = 'behavioral_verification_unavailable';
+            result.analysis = { failureKind: 'unverified', errorMessages: [
+              'Behavioral verification was not performed for the changed source. Syntax/lint success is not behavioral evidence.'
+            ], rawLogSnippet: result.output?.slice(-1000) || result.behavioral.reason };
+          }
+          result.behavioral.required = requiresBehavior;
+        }
         if (custom) {
           result.targeted = true;
-          result.targets = action === 'test' ? (targets.testFiles || []).filter(file => scope.files.includes(file))
+          result.targets = action === 'test' ? tests.map(file => path.relative(this.workspaceRoot, path.resolve(scope.root, file)).replaceAll('\\', '/'))
             : action === 'syntax' ? scope.files.filter(file => plan.syntaxFiles.includes(path.relative(scope.root, path.resolve(this.workspaceRoot, file))))
               : scope.files.filter(file => plan.lintFiles.includes(path.relative(scope.root, path.resolve(this.workspaceRoot, file))));
         }
@@ -245,13 +265,81 @@ export class VerificationEngine {
       else {
         const failures = checks.filter(check => !check.ok);
         const environment = failures.find(check => check.failureKind === 'environment');
+        const unverified = failures.length && failures.every(check => check.failureKind === 'unverified');
         const output = failures.map(check => `[${check.projectRoot}]\n${check.output || check.error || ''}`).join('\n');
         results[action] = { ok: failures.length === 0, skipped: checks.every(check => check.skipped), action, projects: checks,
           analysis: failures.length ? this.analyzeFailure(output) : null,
-          ...(environment ? { failureKind: 'environment', environmentIssue: environment.environmentIssue } : {}) };
+          ...(environment ? { failureKind: 'environment', environmentIssue: environment.environmentIssue }
+            : unverified ? { failureKind: 'unverified', reason: 'behavioral_verification_unavailable' } : {}),
+          ...(action === 'test' ? { behavioral: { status: failures.length ? (unverified ? 'unverified' : 'failed') : 'passed',
+            scopes: checks.map(check => ({ projectRoot: check.projectRoot, ...check.behavioral })) } } : {}) };
       }
     }
     return { ok: Object.values(results).every(result => result.ok), results, targets };
+  }
+
+  describeTestEvidence(result, command) {
+    if (!result.ok) return { status: 'failed' };
+    const output = `${result.output || ''}\n${result.error || ''}`.replace(/\u001b\[[0-9;]*m/g, '');
+    const nodeTests = output.match(/^(?:#|\u2139) tests (\d+)\s*$/m);
+    const nodeSkipped = output.match(/^(?:#|\u2139) skipped (\d+)\s*$/m);
+    const pythonTests = output.match(/Ran (\d+) tests?\b/);
+    const positive = output.match(/\b(\d+) (?:passing|passed)\b/);
+    const pythonSkipped = output.match(/OK \(skipped=(\d+)\)/);
+    const count = nodeTests ? Number(nodeTests[1]) - Number(nodeSkipped?.[1] || 0)
+      : pythonTests ? Number(pythonTests[1]) - Number(pythonSkipped?.[1] || 0) : positive ? Number(positive[1]) : null;
+    const zero = count === 0 || (count === null && (/no tests (?:ran|found)|collected 0 items|node:test run\(\) is being called recursively.*skipping running files|^\s*Tests:?\s+\d+ skipped\s*(?:,\s*\d+ total|\(\d+\))\s*$/im.test(output)
+      || (!positive && /^\s*\d+ skipped(?:, \d+ warnings?)? in /m.test(output))));
+    const noop = /^\s*echo\s+[^&|;<>]*$/i.test(command)
+      || /(?:^|[\\/\s"])node(?:\.exe)?"?\s+(?:--version|-v)\s*$/i.test(command)
+      || (!/[&|;<>]/.test(command) && (/(?:^|[\\/\s"])node(?:\.exe)?"?\s+(?:--check|-c)\b/i.test(command)
+        || /^\s*(?:tsc|eslint|oxlint|flake8)(?:\.cmd)?(?:\s|$)/i.test(command)
+        || /^\s*ruff\s+check\b|^\s*python(?:3|\.exe)?\s+-m\s+(?:py_compile|compileall)\b/i.test(command)));
+    if (zero || noop) return { status: 'unverified', reason: zero ? 'zero_tests_executed' : 'non_behavioral_test_command', testsExecuted: count };
+    return { status: 'passed', source: count === null ? 'project_declared_test_command' : 'test_runner_summary', testsExecuted: count };
+  }
+
+  discoverNodeTests(changedFiles, knownTests = []) {
+    const tests = new Set();
+    const visited = new Set();
+    let entriesSeen = 0;
+    const inside = file => {
+      const relative = path.relative(this.workspaceRoot, file);
+      return relative !== '..' && !relative.startsWith(`..${path.sep}`) && !path.isAbsolute(relative);
+    };
+    const add = file => {
+      if (tests.size >= 200 || !inside(file) || !['.js', '.mjs', '.cjs'].includes(path.extname(file))) return;
+      try {
+        const stat = fs.lstatSync(file);
+        if (!stat.isFile() || stat.size > 256 * 1024) return;
+        const parsed = analyzeAstFile(file, fs.readFileSync(file, 'utf8'));
+        if (parsed?.imports.some(name => /^(?:node:)?(?:test|assert)(?:\/strict)?$/.test(name))) {
+          tests.add(path.relative(this.workspaceRoot, file).replaceAll('\\', '/'));
+        }
+      } catch { /* Unreadable or incompatible tests are not runnable evidence. */ }
+    };
+    const visit = (directory, depth = 0, testTree = false) => {
+      if (!inside(directory) || visited.has(directory) || depth > 4 || entriesSeen >= 2000 || tests.size >= 200) return;
+      visited.add(directory);
+      let entries;
+      try {
+        if (fs.lstatSync(directory).isSymbolicLink()) return;
+        if (directory !== this.workspaceRoot && fs.existsSync(path.join(directory, 'package.json'))) return;
+        entries = fs.readdirSync(directory, { withFileTypes: true }).sort((a, b) => a.name.localeCompare(b.name));
+      } catch { return; }
+      for (const entry of entries) {
+        if (++entriesSeen > 2000 || tests.size >= 200) break;
+        if (entry.isSymbolicLink()) continue;
+        const file = path.join(directory, entry.name);
+        if (entry.isDirectory()) {
+          if (['node_modules', '.git', 'dist', 'build', 'data'].includes(entry.name)) continue;
+          if (testTree || /^(?:tests?|__tests__)$/.test(entry.name)) visit(file, depth + 1, true);
+        } else if (testTree || /(?:^|[.-])(?:test|spec)(?:[.-].*)?\.[cm]?js$/.test(entry.name)) add(file);
+      }
+    };
+    for (const file of knownTests) add(path.resolve(this.workspaceRoot, file));
+    for (const directory of new Set([this.workspaceRoot, ...changedFiles.map(file => path.dirname(path.resolve(this.workspaceRoot, file)))])) visit(directory);
+    return [...tests].sort();
   }
 
   buildVerificationPlan(targets = {}) {

@@ -6,7 +6,8 @@ const { runTests } = require('@vscode/test-electron');
 async function main() {
   const extensionDevelopmentPath = path.resolve(__dirname, '..');
   const extensionTestsPath = path.resolve(__dirname, 'suite', 'index.js');
-  const workspacePath = fs.mkdtempSync(path.join(os.tmpdir(), 'blackhole-vscode-e2e-'));
+  const testRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'blackhole-vscode-e2e-'));
+  const workspacePath = path.join(testRoot, 'workspace');
 
   fs.mkdirSync(path.join(workspacePath, 'src'), { recursive: true });
   fs.writeFileSync(
@@ -15,16 +16,24 @@ async function main() {
     'utf8'
   );
 
-  await runTests({
-    extensionDevelopmentPath,
-    extensionTestsPath,
-    launchArgs: [
-      workspacePath,
-      '--disable-workspace-trust',
-      '--skip-welcome',
-      '--skip-release-notes'
-    ]
-  });
+  try {
+    await runTests({
+      extensionDevelopmentPath,
+      extensionTestsPath,
+      launchArgs: [
+        workspacePath,
+        `--user-data-dir=${path.join(testRoot, 'user-data')}`,
+        `--extensions-dir=${path.join(testRoot, 'extensions')}`,
+        '--disable-workspace-trust',
+        '--skip-welcome',
+        '--skip-release-notes'
+      ]
+    });
+  } finally {
+    const resolved = fs.realpathSync(testRoot);
+    if (!resolved.toLowerCase().startsWith(path.resolve(os.tmpdir(), 'blackhole-vscode-e2e-').toLowerCase())) throw new Error('Unsafe test cleanup path.');
+    fs.rmSync(resolved, { recursive: true, force: true, maxRetries: 10, retryDelay: 200 });
+  }
 }
 
 main().catch((error) => {

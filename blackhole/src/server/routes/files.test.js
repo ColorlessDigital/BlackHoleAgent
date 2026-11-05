@@ -4,6 +4,8 @@ import fs from 'node:fs';
 import path from 'node:path';
 import os from 'node:os';
 import express from 'express';
+import http from 'node:http';
+import { listenLoopback } from '../../testSupport/loopback.js';
 
 test('UI file API pages one directory without traversing its children', async t => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bh-files-api-'));
@@ -16,8 +18,7 @@ test('UI file API pages one directory without traversing its children', async t 
   const { createFilesRouter } = await import('./files.js');
   saveConfig({ workspaceRoot: root });
   const app = express(); app.use(createFilesRouter());
-  const server = app.listen(0, '127.0.0.1');
-  await new Promise(resolve => server.once('listening', resolve));
+  const server = await listenLoopback(http.createServer(app));
   t.after(async () => {
     await new Promise(resolve => { server.close(resolve); server.closeAllConnections(); });
     fs.rmSync(root, { recursive: true, force: true });

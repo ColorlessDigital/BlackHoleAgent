@@ -161,6 +161,10 @@ export function createChatRouter() {
   // the session keeps working past the context limit. Stateless — the caller
   // replaces its message list with the returned one.
   router.post('/chat/compress', async (req, res) => {
+    const abortController = new AbortController();
+    res.on('close', () => {
+      if (!res.writableEnded) abortController.abort();
+    });
     try {
       const config = loadConfig();
       const messages = Array.isArray(req.body.messages) ? req.body.messages : [];
@@ -179,14 +183,15 @@ export function createChatRouter() {
             COMPACTION_SYSTEM_PROMPT,
             [{ role: 'user', content: transcript }],
             (chunk) => { summary += chunk || ''; },
-            { phase: 'summarize', task: 'context-compaction', usageTag: 'compaction', sessionId: req.body.providerSessionId }
+            { phase: 'summarize', task: 'context-compaction', usageTag: 'compaction', sessionId: req.body.providerSessionId,
+              abortSignal: abortController.signal }
           );
           return summary;
         }
       });
-      res.json(result);
+      if (!abortController.signal.aborted) res.json(result);
     } catch (err) {
-      res.status(500).json({ ok: false, compacted: false, error: err.message });
+      if (!abortController.signal.aborted) res.status(500).json({ ok: false, compacted: false, error: err.message });
     }
   });
 

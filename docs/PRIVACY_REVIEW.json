@@ -1,0 +1,15 @@
+{
+  "checkedAt": "2026-11-05T11:49:51.245Z",
+  "scope": "New public source plus unchanged build31 unpacked payload and executable/portable ZIP bytes. Compressed source archive is additionally extracted and rescanned before upload. Existing public Git author metadata and intended KGE7/upstream attribution are not new source secrets.",
+  "knownStoredCredentialsComparedInMemory": true,
+  "knownSecretCount": 3,
+  "filesScanned": 479,
+  "exactKnownSecretMatches": 0,
+  "unresolvedKeyPatternCandidates": 0,
+  "privatePathCandidates": 0,
+  "forbiddenSourcePaths": 0,
+  "userConfigAndKeysUnchanged": true,
+  "originalPrivateGitHistoryIncluded": false,
+  "newCommitUsesGitHubNoreply": true,
+  "statement": "No findings within the described checks; not a mathematical guarantee of absence of all possible sensitive data."
+}

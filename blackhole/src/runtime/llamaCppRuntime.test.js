@@ -56,7 +56,8 @@ test('llama.cpp sends separate reasoning and answer fields to their own channels
   let request;
   t.mock.method(globalThis, 'fetch', async (_url, options) => {
     request = JSON.parse(options.body);
-    return new Response(frames.map(frame => `data: ${JSON.stringify(frame)}\n\n`).join(''));
+    return new Response(frames.map(frame => `data: ${JSON.stringify(frame)}\n\n`).join('') + 'data: [DONE]\n\n',
+      { headers: { 'Content-Type': 'text/event-stream' } });
   });
   const runtime = new LlamaCppRuntime({});
   runtime.ensureServerRunning = async () => true;

@@ -6,11 +6,12 @@ import { ToolRegistry } from './toolRegistry.js';
 import { PatchTransactionManager } from './patchTransaction.js';
 import { AgentCheckpointStore } from './checkpointStore.js';
 import { RepairPlanner } from './repairPlanner.js';
-import { TaskGraphPlanner } from './taskGraphPlanner.js';
+import { TaskGraphPlanner, isObservationGoal } from './taskGraphPlanner.js';
 import { AgentMemoryStore } from './agentMemoryStore.js';
 import { callLocalModel } from '../llmRouter.js';
 import { resolveModelRoute } from '../modelRouting.js';
-import { applySlidingContextGuard } from '../contextGuard.js';
+import { applySlidingContextGuard, estimateTextTokens, OBSERVATION_EVIDENCE } from '../contextGuard.js';
+import { previewData } from '../../common/boundedData.js';
 import { COMPACTION_SYSTEM_PROMPT, compactConversation, compactionTranscriptBudget } from '../contextCompactor.js';
 import {
   parseAllToolCalls,
@@ -26,6 +27,7 @@ import { randomUUID } from 'node:crypto';
 import { snapshotActionFiles, compareActionFiles } from './actionJournal.js';
 import { normalizeAgentRunLimits } from '../../config/agentRunLimits.js';
 import { resolveDirectoryTask, observeDirectoryTask, directoryTaskVerified } from './directoryTask.js';
+import { ObservationEvidence } from './observationEvidence.js';
 // P1-5: pure guards live in phaseGuards.js; methods below delegate to them.
 import {
   detectPassiveRefusal as detectPassiveRefusalPure,
@@ -131,7 +133,12 @@ export class AgentStateMachine {
         executionBudget: this.resumeCheckpoint.executionBudget || null
       } : null
     };
+    if (initialTaskGraph?.migratedFrom) {
+      this.resumeContextPrompt = buildCheckpointResumePrompt(this.checkpoint);
+      this.activeConversation = this.buildInitialConversation(this.messages);
+    }
     this.directoryTask = resolveDirectoryTask(this.checkpoint.userGoal, this.workspaceRoot);
+    this.observationEvidence = new ObservationEvidence(this.checkpoint.userGoal, this.workspaceRoot);
   }
 
   checkAborted() {
@@ -414,6 +421,9 @@ export class AgentStateMachine {
   // the configured threshold on conversations long enough to compact, so
   // short sessions and unit tests never take this path.
   async maybeCompactContext(systemPrompt, messages) {
+    const sharedModelLimit = error => [401, 402, 429].includes(error?.modelFailure?.httpStatus)
+      && resolveModelRoute(this.config, { phase: 'plan' }).model === resolveModelRoute(this.config, { phase: 'summarize' }).model;
+    let summarizerFailure = null;
     try {
       if (this.config.contextCompactionEnabled === false) return { messages, compacted: false };
       const limit = resolveModelRoute(this.config, { phase: 'plan' }).contextLimit;
@@ -430,15 +440,18 @@ export class AgentStateMachine {
         summarize: async (transcript) => {
           this.checkAborted();
           this.sendStatus('Compressing conversation context...', { phase: 'CONTEXT' });
-          await this.callModel(
-            COMPACTION_SYSTEM_PROMPT,
-            [{ role: 'user', content: transcript }],
-            (chunk) => { summary += chunk || ''; },
-            { phase: 'summarize', task: 'context-compaction', usageTag: 'compaction' }
-          );
+          try {
+            await this.callModel(
+              COMPACTION_SYSTEM_PROMPT,
+              [{ role: 'user', content: transcript }],
+              (chunk) => { summary += chunk || ''; },
+              { phase: 'summarize', task: 'context-compaction', usageTag: 'compaction' }
+            );
+          } catch (error) { summarizerFailure = error; throw error; }
           return summary;
         }
       });
+      if (sharedModelLimit(summarizerFailure)) throw summarizerFailure;
       if (result.compacted) {
         this.activeConversation = result.messages;
         this.sendStateChange(AgentState.PLAN, {
@@ -450,6 +463,7 @@ export class AgentStateMachine {
       return result;
     } catch (err) {
       if (this.abortSignal?.aborted || err.name === 'AbortError') throw err;
+      if (sharedModelLimit(err)) throw err;
       emitLog(`Context compaction skipped: ${err.message}`, 'warning');
       return { messages, compacted: false, reason: err.message };
     }
@@ -491,12 +505,17 @@ export class AgentStateMachine {
         this.checkAborted();
         this.checkpoint.failedVerifications = Object.entries(verification.results)
           .filter(([, result]) => !result.ok).map(([type, result]) => ({ type, analysis: result.analysis,
-            failureKind: result.failureKind, environmentIssue: result.environmentIssue }));
-        pendingFailure = verification.ok ? null : this.checkpoint.failedVerifications.some(failure => failure.failureKind === 'environment')
-          ? 'verification_environment' : 'verification_failed';
+            failureKind: result.failureKind, environmentIssue: result.environmentIssue, behavioral: result.behavioral }));
+        pendingFailure = verification.ok ? null : this.classifyVerificationFailure(this.checkpoint.failedVerifications);
+        if (pendingFailure === 'behavioral_verification_unavailable') this.checkpoint.repairPlan = null;
         this.updateTaskGraph({ changedFiles: Array.from(this.diffTracker.changedFiles), verification });
         this.resumeContextPrompt = buildCheckpointResumePrompt(this.checkpoint);
         this.activeConversation = this.buildInitialConversation(this.messages);
+        this.activeConversation.push({ role: 'user', content: `[Checkpoint Verification Result]\n${JSON.stringify(previewData({
+          ok: verification.ok, changedFiles: Array.from(this.diffTracker.changedFiles),
+          checks: Object.fromEntries(Object.entries(verification.results).map(([type, result]) => [type,
+            { ok: result.ok, skipped: result.skipped === true, failureKind: result.failureKind || null }]))
+        }, { maxChars: 2400, maxItems: 20, maxDepth: 5 }))}` });
         this.sendStateChange(AgentState.VERIFY, {
           message: 'Checkpoint files rechecked', resumed: true,
           results: Object.fromEntries(Object.entries(verification.results).map(([type, result]) => [type, this.formatVerificationReport(result)])),
@@ -513,7 +532,7 @@ export class AgentStateMachine {
         }
       }
 
-      while (!runCompleted && pendingFailure !== 'verification_environment' && this.stepCount < this.runLimits.agentMaxSteps) {
+      while (!runCompleted && !['verification_environment', 'behavioral_verification_unavailable'].includes(pendingFailure) && this.stepCount < this.runLimits.agentMaxSteps) {
         this.checkAborted();
         this.stepCount++;
         // --- 1. PLAN Phase ---
@@ -557,7 +576,7 @@ export class AgentStateMachine {
         try {
           modelResult = await this.callModel(systemPromptWithContext, planMessages, (chunk) => {
             assistantOutput += chunk;
-          }, { tools: ToolRegistry.getAllTools().map(tool => ({ name: tool.name, description: tool.description, parameters: tool.inputSchema })) });
+          }, { tools: this.getModelTools().map(tool => ({ name: tool.name, description: tool.description, parameters: tool.inputSchema })) });
         } catch (error) {
           const failure = error.modelFailure;
           if (failure?.code !== 'malformed_tool_call' || !failure.toolCallValidationComplete ||
@@ -637,9 +656,24 @@ export class AgentStateMachine {
             continue;
           }
           // If no tool calls, it means the agent believes it finished. Let's move to SUMMARIZE.
+          const remainingFailures = this.resolveOptionalObservationFailures(this.checkpoint.toolFailures || [], assistantOutput);
+          if (pendingFailure === 'tool_failure' && remainingFailures.length === 0) pendingFailure = null;
           const missingChanges = this.goalLikelyRequiresMutation() && this.diffTracker.changedFiles.size === 0;
           const missingDirectory = this.directoryTask && !directoryTaskVerified(this.directoryTask);
-          runCompleted = !pendingFailure && !missingChanges && !missingDirectory && !malformed;
+          const observation = this.observationEvidence.verify(this.prepareVisibleAssistantText(assistantOutput));
+          if (!pendingFailure && !malformed && !observation.ok) {
+            pendingFailure = 'observation_not_verified';
+            this.sendStatus('The requested file observation is not yet reflected in the answer.', {
+              level: 'warning', observationVerification: observation
+            });
+            if (!this.beginRepairCycle()) break;
+            this.activeConversation.push({ role: 'user', content: this.observationEvidence.recoveryMessage(observation) });
+            this.saveCheckpoint('Complete the requested file observation before answering');
+            pendingFailure = null;
+            this.cycleCount++;
+            continue;
+          }
+          runCompleted = !pendingFailure && !missingChanges && !missingDirectory && !malformed && observation.ok;
           terminalReason = pendingFailure || (malformed ? 'malformed_tool_call' : missingDirectory ? 'directory_not_verified' : missingChanges ? 'no_changes_applied' : 'completed');
           if (!missingDirectory) this.streamVisibleAssistantOutput(assistantOutput);
           break;
@@ -742,6 +776,7 @@ export class AgentStateMachine {
           }
 
           const isSuccess = result && result.ok !== false;
+          const observationKey = this.observationEvidence.observe(toolCall, result);
           this.toolExecutionSummary.push({
             tool: toolCall.tool,
             success: isSuccess,
@@ -818,7 +853,8 @@ export class AgentStateMachine {
 
           this.activeConversation.push({
             role: 'user',
-            content: `[Tool Result (Tool: ${toolCall.tool})]\n${formattedModelSummary}`
+            content: `[Tool Result (Tool: ${toolCall.tool})]\n${formattedModelSummary}`,
+            ...(observationKey ? { [OBSERVATION_EVIDENCE]: observationKey } : {})
           });
 
           this.sendStateChange(AgentState.OBSERVE, {
@@ -848,7 +884,7 @@ export class AgentStateMachine {
           */
           this.sendStatus('Code changes detected. Running verification...');
 
-          // Run available verification checks. Missing optional checks are reported as skipped.
+          // Optional tooling may be skipped, but source completion needs behavioral evidence.
           const verificationSuite = await this.verificationEngine.runVerificationSuite({
             changedFiles: Array.from(this.diffTracker.changedFiles),
             contextEngine: this.contextEngine,
@@ -880,14 +916,24 @@ export class AgentStateMachine {
             pendingFailure = 'verification_failed';
             const failures = [];
             for (const [type, result] of Object.entries(verificationSuite.results)) {
-              if (!result.ok) failures.push({ type, analysis: result.analysis, failureKind: result.failureKind, environmentIssue: result.environmentIssue });
+              if (!result.ok) failures.push({ type, analysis: result.analysis, failureKind: result.failureKind,
+                environmentIssue: result.environmentIssue, behavioral: result.behavioral });
             }
 
-            const repairPlan = this.repairPlanner.buildRepairPlan(failures, {
+            this.checkpoint.failedVerifications = failures;
+            pendingFailure = this.classifyVerificationFailure(failures);
+            if (pendingFailure === 'behavioral_verification_unavailable') {
+              this.checkpoint.repairPlan = null;
+              this.sendStatus('Source changes are preserved, but behavioral verification is unavailable. No source self-repair was started.', {
+                level: 'warning', behavioralVerification: testVerify.behavioral, failures
+              });
+              break;
+            }
+
+            const repairPlan = this.repairPlanner.buildRepairPlan(failures.filter(failure => failure.failureKind !== 'unverified'), {
               changedFiles: Array.from(this.diffTracker.changedFiles),
               contextEngine: this.contextEngine
             });
-            this.checkpoint.failedVerifications = failures;
             this.checkpoint.repairPlan = repairPlan;
             if (failures.some(failure => failure.failureKind === 'environment')) {
               pendingFailure = 'verification_environment';
@@ -1007,20 +1053,27 @@ export class AgentStateMachine {
       this.runOutcome = {
         status: runCompleted ? 'completed' : 'incomplete',
         reason: runCompleted ? 'completed' : (pendingFailure || terminalReason),
-        executionBudget: this.getExecutionBudget()
+        executionBudget: this.getExecutionBudget(),
+        ...(this.checkpoint.nonBlockingToolFailures?.length ? { warnings: this.checkpoint.nonBlockingToolFailures.map(failure => ({
+          tool: failure.tool, reason: failure.reason, resolution: failure.resolution
+        })) } : {})
       };
       this.checkpoint.outcome = this.runOutcome;
       if (runCompleted) {
+        this.updateTaskGraph({ completed: true });
         this.saveCheckpoint('Completed successfully');
       } else {
         this.sendStateChange(AgentState.FAIL, {
           message: 'Agent stopped before completing the requested work.',
           outcome: this.runOutcome
         });
-        const checkpoint = this.saveCheckpoint('Review remaining work and resume');
+        const unverified = this.runOutcome.reason === 'behavioral_verification_unavailable';
+        const checkpoint = this.saveCheckpoint(unverified
+          ? 'Provide and run an appropriate behavioral check for the preserved changes before resuming.' : 'Review remaining work and resume');
         this.sendRecovery({
           reason: this.runOutcome.reason,
-          message: 'Work is incomplete. Review the execution log and resume from the checkpoint.',
+          message: unverified ? 'Source changes are saved, but their behavior has not been verified. Supply a suitable check before resuming.'
+            : 'Work is incomplete. Review the execution log and resume from the checkpoint.',
           executionBudget: this.getExecutionBudget(),
           checkpoint
         });
@@ -1220,6 +1273,8 @@ export class AgentStateMachine {
       return [
         'Work remains incomplete.',
         `Reason: ${this.runOutcome.reason}`,
+        ...(this.runOutcome.reason === 'behavioral_verification_unavailable'
+          ? ['Syntax/lint success is not a behavioral test. Source changes are preserved; provide a suitable behavioral check before resuming.'] : []),
         ...(this.directoryTask ? this.directoryTask.evidence.map(entry => `Directory: ${entry.path} (${entry.status})`) : []),
         finalChangedFiles.length ? `Changed files:\n${finalChangedFiles.slice(0, 12).map(file => `- ${file}`).join('\n')}` : 'No workspace file changes were applied.',
         '',
@@ -1269,8 +1324,7 @@ export class AgentStateMachine {
     const contextSection = recentlyChanged.length > 0
       ? `\n\n[Context Hints: Recently Modified Files]\n${recentlyChanged.join('\n')}`
       : '';
-    const workspaceSummary = this.contextEngine.getWorkspaceSummary();
-    const workspaceSection = `\n\n[Workspace Summary]\n${JSON.stringify(workspaceSummary, null, 2)}`;
+    const workspaceSection = this.buildWorkspacePromptSection();
     const taskGraphSection = this.checkpoint.taskGraph
       ? `\n\n${this.taskGraphPlanner.formatTaskGraphForPrompt(this.checkpoint.taskGraph)}`
       : '';
@@ -1282,12 +1336,28 @@ export class AgentStateMachine {
     return `${systemEnvSection}\n\n${basePrompt}\n\n${toolPrompt}${workspaceSection}${memorySection}${taskGraphSection}${resumeSection}${contextSection}`;
   }
 
+  buildWorkspacePromptSection() {
+    const contextLimit = resolveModelRoute(this.config, { phase: 'plan' }).contextLimit;
+    const budget = Math.max(256, Math.min(4096, Math.floor(contextLimit * 0.12)));
+    const summary = this.contextEngine.getWorkspaceSummary({ fileLimit: 4, symbolLimit: 6 });
+    const ordered = { workspaceRoot: summary.workspaceRoot, fileCount: summary.fileCount, scanStats: summary.scanStats, ...summary };
+    // Background index samples must leave room for the code explicitly requested by the model.
+    let maxChars = budget * 3;
+    let text;
+    do {
+      text = JSON.stringify(previewData(ordered, { maxChars, maxItems: 24, maxDepth: 5 }));
+      maxChars = Math.floor(maxChars * 0.7);
+    } while (estimateTextTokens(text) > budget && maxChars > 0);
+    return `\n\n[Workspace Summary: bounded background index samples]\n${text}`;
+  }
+
   buildToolPrompt() {
     const isSlm = this.isLocalSlmModel();
+    const nativeTools = String(resolveModelRoute(this.config, { phase: 'plan' }).model).startsWith('opencode-go:');
     const phase = this.state || 'PLAN';
 
     // Prioritize tools by current phase
-    const allTools = ToolRegistry.getAllTools();
+    const allTools = this.getModelTools();
     const prioritizedTools = [...allTools].sort((a, b) => {
       const isObsPhase = phase === AgentState.PLAN || phase === AgentState.OBSERVE;
       const isMutationPhase = phase === AgentState.ACT || phase === AgentState.REPAIR;
@@ -1306,6 +1376,7 @@ export class AgentStateMachine {
     });
 
     const toolLines = prioritizedTools.map((tool, index) => {
+      if (nativeTools) return `${index + 1}. ${tool.name}`;
       const props = tool.inputSchema?.properties || {};
       const required = new Set(tool.inputSchema?.required || []);
       const attrs = Object.entries(props).map(([name, schema]) => {
@@ -1314,6 +1385,7 @@ export class AgentStateMachine {
       }).join(', ') || 'no parameters';
       return `${index + 1}. ${tool.name} (${attrs}) - ${tool.description}`;
     }).join('\n');
+    const declarationNote = nativeTools ? 'Tool parameters and descriptions are supplied by the native function declarations.\n' : '';
 
     const slmExemplar = isSlm ? `
 [Standard XML Tool Format (Recommended for local model)]
@@ -1347,7 +1419,7 @@ Or XML format:
 
 Use exact tool names below and include required parameters. For write_file, put full file contents in params.content. For patch_file, params.search must exactly match the current file text copied from the latest read_file result, including whitespace and line breaks; if exact matching is uncertain, use patch_lines or write_file instead. For patch_lines, use params.startLine, params.endLine, and params.replacement. For multi-file edits, prefer review_patch_transaction first, then apply_patch_transaction with the same operations.
 
-${toolLines}
+${declarationNote}${toolLines}
 
 Autonomous action rule: When the user asks any question requiring system inspection, time, installed packages, git status, or environment information, NEVER advise the user to run commands in cmd/terminal. You must call <run_command> directly and report the result.
 
@@ -1369,6 +1441,10 @@ Important: Prefer project_search/search_project_memory/inspect_code_context/read
       emitLog(`[Project Memory Read Failed] ${error.message}`, 'warning');
       return '';
     }
+  }
+
+  getModelTools() {
+    return ToolRegistry.getAllTools();
   }
 
   buildMemoryUiSnapshot() {
@@ -1524,7 +1600,9 @@ Important: Prefer project_search/search_project_memory/inspect_code_context/read
       repeatCount,
       maxRepeats: this.loopGuardMaxRepeats,
       toolCalls: toolCalls.map(tc => ({ tool: tc.tool, params: tc.params })),
-      recommendation: 'Use the previous tool results already in context. Change strategy, inspect a different target, patch a file, run verification, or provide a final answer.'
+      recommendation: !isObservationGoal(this.checkpoint.userGoal)
+        ? 'Use the previous tool results already in context. Change strategy, inspect a different target, patch a file, run verification, or provide a final answer.'
+        : 'Use the observed results to answer the current request. Do not introduce file edits just to escape a repeated observation.'
     };
   }
 
@@ -1572,7 +1650,9 @@ ${JSON.stringify(loopGuard.toolCalls || [], null, 2)}
 Recommendation:
 ${loopGuard.recommendation}
 
-Use a different JSON tool call, inspect a different file/symbol, apply a minimal patch if enough context is available, run verification, or provide the final answer if the task is complete.`;
+${!isObservationGoal(this.checkpoint.userGoal)
+  ? 'Use a different JSON tool call, inspect a different file/symbol, apply a minimal patch if enough context is available, run verification, or provide the final answer if the task is complete.'
+  : 'Answer the current observation request from the available evidence, or explain what evidence is still missing.'}`;
   }
 
   createToolCallSignature(toolCalls = []) {
@@ -1627,6 +1707,24 @@ Use a different JSON tool call, inspect a different file/symbol, apply a minimal
     return remaining;
   }
 
+  resolveOptionalObservationFailures(failures, answer) {
+    if (!this.observationEvidence.request || this.observationEvidence.verify(this.prepareVisibleAssistantText(answer)).scope !== 'fresh_read_and_quote' ||
+        /\b(?:memory|remember|record|save|persist)\b|기억|메모리|기록|저장/i.test(this.checkpoint.userGoal)) return failures;
+    const optional = failures.filter(failure => failure.tool === 'record_project_memory' &&
+      failure.reason === 'execution_failed' && !failure.policy?.requiresApproval &&
+      !['BLOCKED', 'WARNING'].includes(String(failure.policy?.level || '').toUpperCase()));
+    if (!optional.length) return failures;
+    const remaining = failures.filter(failure => !optional.includes(failure));
+    this.checkpoint.toolFailures = remaining;
+    this.checkpoint.nonBlockingToolFailures = [...(this.checkpoint.nonBlockingToolFailures || []), ...optional.map(failure => ({
+      ...failure, resolution: 'not_required_for_verified_file_observation', effectStatus: 'failed_not_replayed'
+    }))].slice(-50);
+    this.sendStatus('The requested file observation is verified. An optional memory write failed and was not replayed.', {
+      level: 'warning', optionalToolFailures: optional.map(failure => ({ tool: failure.tool, reason: failure.reason }))
+    });
+    return remaining;
+  }
+
   prepareToolFailureRetry(toolFailures) {
     this.checkpoint.toolFailures = toolFailures;
     this.sendStateChange(AgentState.REPAIR, {
@@ -1671,7 +1769,7 @@ Schema:
 ${schema}`;
     }).join('\n\n');
 
-    const availableTools = ToolRegistry.getAllTools()
+    const availableTools = this.getModelTools()
       .map(tool => `- ${tool.name}: ${tool.description}`)
       .join('\n');
 
@@ -1708,6 +1806,12 @@ ${JSON.stringify(result?.validation || null, null, 2)}`;
     return levenshteinDistancePure(a, b);
   }
 
+  classifyVerificationFailure(failures) {
+    if (failures.some(failure => failure.failureKind === 'environment')) return 'verification_environment';
+    if (failures.length && failures.every(failure => failure.failureKind === 'unverified')) return 'behavioral_verification_unavailable';
+    return 'verification_failed';
+  }
+
   formatVerificationReport(result) {
     return {
       ok: result.ok,
@@ -1718,6 +1822,9 @@ ${JSON.stringify(result?.validation || null, null, 2)}`;
       targeted: !!result.targeted,
       targets: result.targets || [],
       error: result.error,
+      failureKind: result.failureKind,
+      reason: result.reason,
+      behavioral: result.behavioral,
       analysis: result.analysis
     };
   }

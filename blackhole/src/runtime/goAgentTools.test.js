@@ -4,6 +4,8 @@ import os from 'node:os';
 import path from 'node:path';
 import test from 'node:test';
 
+const helloBehaviorTest = "const test=require('node:test'),assert=require('node:assert/strict');test('answer behavior',async()=>assert.equal((await import('./hello.js')).answer,42));\n";
+
 test('all four Go adapters complete a real file-editing agent loop with unchanged executor policies', async t => {
   const root = fs.mkdtempSync(path.join(os.tmpdir(), 'bh-go-tools-'));
   t.after(() => fs.rmSync(root, { recursive: true, force: true }));
@@ -18,6 +20,7 @@ test('all four Go adapters complete a real file-editing agent loop with unchange
       const workspace = path.join(root, protocol);
       fs.mkdirSync(workspace);
       fs.writeFileSync(path.join(workspace, 'seed.js'), 'export const seed = 42;\n');
+      fs.writeFileSync(path.join(workspace, 'hello.test.cjs'), helloBehaviorTest);
       let calls = 0;
       sub.mock.method(globalThis, 'fetch', async (url, init) => {
         calls++;
@@ -68,6 +71,8 @@ test('all four Go adapters complete a real file-editing agent loop with unchange
       assert.equal(fs.readFileSync(path.join(workspace, 'hello.js'), 'utf8'), 'export const answer = 42;\n');
       assert.equal(events.filter(e => e.type === 'tool_start').length, 2);
       assert.equal(calls, 2);
+      assert.equal(fs.readFileSync(path.join(workspace, 'hello.test.cjs'), 'utf8'), helloBehaviorTest);
+      assert.ok(events.some(event => event.state === 'VERIFY' && event.payload?.results?.test?.behavioral?.testsExecuted === 1));
       const reasoning = events.filter(event => event.type === 'reasoning');
       assert.equal(reasoning.length, 2);
       assert.equal(new Set(reasoning.map(event => event.requestId)).size, 2);
@@ -102,6 +107,7 @@ test('all four Go adapters complete a real file-editing agent loop with unchange
       const workspace = path.join(root, `format-${mode}`);
       fs.mkdirSync(workspace);
       fs.writeFileSync(path.join(workspace, 'seed.js'), 'export const seed = 42;\n');
+      fs.writeFileSync(path.join(workspace, 'hello.test.cjs'), helloBehaviorTest);
       let calls = 0;
       const google = mode === 'google-corrected';
       sub.mock.method(globalThis, 'fetch', async (_url, init) => {

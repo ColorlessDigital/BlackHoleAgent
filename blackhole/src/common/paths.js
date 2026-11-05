@@ -61,13 +61,13 @@ function findDevelopmentNodeRuntimeRoot() {
   const candidates = IS_WINDOWS
     ? [
         path.join(PROJECT_ROOT, 'resources', 'node-runtime', 'current'),
-        path.join(parent, `node-v24.21.0-win-${process.arch}`),
+        path.join(parent, `node-v24.22.2-win-${process.arch}`),
         path.dirname(process.execPath || '')
       ]
     : [
         path.join(PROJECT_ROOT, 'resources', 'node-runtime', 'current'),
         path.join(PROJECT_ROOT, 'resources', 'node-runtime', `${process.platform}-${process.arch}`),
-        path.join(parent, `node-v24.21.0-${process.platform}-${process.arch}`),
+        path.join(parent, `node-v24.22.2-${process.platform}-${process.arch}`),
         path.dirname(path.dirname(process.execPath || ''))
       ];
   return candidates.find(candidate => candidate && fs.existsSync(candidate)) || '';

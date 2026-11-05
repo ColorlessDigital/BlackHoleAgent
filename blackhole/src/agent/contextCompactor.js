@@ -28,8 +28,12 @@ export function selectCompactionWindow(messages = [], tailTurns = 4, userGoal) {
   if (list.length < 1 + tailTurns + 3) return null; // need head + >=3 middle + tail
   const goals = userGoalIndices(list, userGoal);
   const headIndex = goals[0] ?? 0;
-  const tailIndices = new Set([...Array.from({ length: tailTurns }, (_, i) => list.length - tailTurns + i), ...goals.slice(1)]);
-  return { head: [list[headIndex]], middle: list.filter((_, i) => i !== headIndex && !tailIndices.has(i)),
+  const currentGoal = userGoal ? list.findLastIndex(message => message.role === 'user' && message.content === userGoal) : -1;
+  const tailStart = currentGoal > headIndex ? Math.min(currentGoal, list.length - tailTurns) : list.length - tailTurns;
+  const tailIndices = new Set([...Array.from({ length: list.length - tailStart }, (_, i) => tailStart + i), ...goals.slice(1)]);
+  const middle = list.filter((_, i) => i !== headIndex && !tailIndices.has(i));
+  if (middle.length < 3) return null;
+  return { head: [list[headIndex]], middle,
     tail: list.filter((_, i) => i !== headIndex && tailIndices.has(i)) };
 }
 

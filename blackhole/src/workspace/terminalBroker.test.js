@@ -3,6 +3,17 @@ import assert from 'node:assert';
 import { runTerminalCommand } from './terminalBroker.js';
 
 describe('terminalBroker', () => {
+  test('verification child environment overrides do not mutate the parent environment', async () => {
+    const before = process.env.NODE_TEST_CONTEXT;
+    const result = await runTerminalCommand(`"${process.execPath}" -p "String(process.env.BLACKHOLE_VERIFICATION_TEST) + ':' + String(process.env.NODE_TEST_CONTEXT)"`, {
+      timeout: 5000, env: { BLACKHOLE_VERIFICATION_TEST: 'isolated', NODE_TEST_CONTEXT: undefined }
+    });
+    assert.strictEqual(result.code, 0);
+    assert.match(result.output, /isolated:undefined/);
+    assert.strictEqual(process.env.NODE_TEST_CONTEXT, before);
+    assert.strictEqual(process.env.BLACKHOLE_VERIFICATION_TEST, undefined);
+  });
+
   test('runTerminalCommand - stops a running process on cancellation', async () => {
     const controller = new AbortController();
     const timer = setTimeout(() => controller.abort(), 200);

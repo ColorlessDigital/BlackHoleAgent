@@ -191,6 +191,7 @@ export class OpenCodeGoRuntime {
     const resource = protocol === 'chat' ? 'chat/completions' : protocol === 'google'
       ? `models/${encodeURIComponent(id)}:streamGenerateContent?alt=sse` : protocol;
     const url = `${this.customBaseUrl ? this.baseUrl : API_BASES[protocol]}/${resource}`;
+    const deadlineAt = performance.now() + this.timeoutMs;
     const requestSignal = AbortSignal.any([...(signal ? [signal] : []), AbortSignal.timeout(this.timeoutMs)]);
     // Hash only the explicit conversation ID, not prompt content. This also
     // keeps arbitrary user/session strings valid as HTTP header values.
@@ -235,6 +236,16 @@ export class OpenCodeGoRuntime {
           throw error;
         }
         const retryDelayMs = Math.max(this.retryDelayMs, failure.retryAfterMs);
+        const remainingMs = Math.max(0, deadlineAt - performance.now());
+        if (retryDelayMs >= remainingMs) {
+          Object.assign(failure, { retryDeferred: true, requestPhase: 'retry_delay', requestTimeoutMs: this.timeoutMs });
+          const status = `OpenCode Go / ${id}: retry deferred for ${Math.ceil(retryDelayMs / 1000)}s; the backoff exceeds the remaining request time. No automatic retry was sent.`;
+          this.catalog.observe(id, 'temporary_error', this.safeError(error));
+          emitLog(status, 'warning', failure);
+          onStatus?.({ status, level: 'warning', modelFailure: { ...failure }, retryDeferred: true });
+          signal?.throwIfAborted();
+          throw error;
+        }
         const status = `OpenCode Go / ${id}: temporary model failure (${failure.code}). Retrying once in ${retryDelayMs / 1000}s...`;
         emitLog(status, 'warning', failure);
         onStatus?.({ status, level: 'warning', modelFailure: { ...failure }, retryAttempt: attempt + 1 });
@@ -295,6 +306,7 @@ export class OpenCodeGoRuntime {
       let nativeText = '';
       const answer = text => { if (text) nativeText += text; output(text, onChunk); };
       const parser = createParser({ maxBufferSize: 1024 * 1024, onEvent: event => {
+        if (terminal) return;
         requestSignal.throwIfAborted();
         if (event.data === '[DONE]') { if (protocol === 'chat') complete = terminal = true; return; }
         let data;

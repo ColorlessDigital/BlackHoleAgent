@@ -112,7 +112,7 @@ Expose BlackHole internal tools to an external MCP host:
 
 ```powershell
 cd <repo>\blackhole
-<repo>\node-v24.21.0-win-x64\node.exe src\mcp\blackholeMcpServer.js
+<repo>\node-v24.22.2-win-x64\node.exe src\mcp\blackholeMcpServer.js
 ```
 
 Or:

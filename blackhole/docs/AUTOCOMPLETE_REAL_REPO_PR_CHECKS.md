@@ -1,5 +1,10 @@
 # Autocomplete, Real Repo Eval, And PR Checks
 
+Current public source baseline: stabilized31. The mechanisms below describe
+available evaluation tooling, not a fresh full-corpus or all-model result.
+[Public validation](../../PUBLIC_VALIDATION.json) and [versioned evidence](../../docs/validation/stabilized-31.json)
+identify what was actually executed. Visible extension-host E2E remains separate.
+
 This document defines the product-grade evaluation layer added on top of the BlackHole agent core.
 
 ## Autocomplete Engine

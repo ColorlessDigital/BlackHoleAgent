@@ -1,6 +1,8 @@
 import fs from 'fs';
 import path from 'path';
 import { DiffTracker } from './diffTracker.js';
+import { writeFileAtomicSync } from '../../workspace/atomicWrite.js';
+import { replaceTextBlock, replaceTextLines } from '../../workspace/textPatch.js';
 
 export class PatchTransactionManager {
   constructor(workspaceRoot = '.') {
@@ -9,7 +11,12 @@ export class PatchTransactionManager {
 
   review(operations = []) {
     const normalized = this.normalizeOperations(operations);
-    const previews = normalized.map(operation => this.previewOperation(operation));
+    const staged = new Map();
+    const previews = normalized.map(operation => {
+      const preview = this.previewOperation(operation, staged.has(operation.path) ? staged.get(operation.path) : undefined);
+      if (preview.ok) staged.set(operation.path, preview.after);
+      return preview;
+    });
     return {
       ok: previews.every(preview => preview.ok),
       operationCount: previews.length,
@@ -29,6 +36,7 @@ export class PatchTransactionManager {
     }
 
     const backups = new Map();
+    const committed = new Map();
     try {
       for (const preview of review.previews) {
         const absolutePath = this.resolvePath(preview.path);
@@ -39,7 +47,8 @@ export class PatchTransactionManager {
         if (!fs.existsSync(parent)) {
           fs.mkdirSync(parent, { recursive: true });
         }
-        fs.writeFileSync(absolutePath, preview.after, 'utf8');
+        writeFileAtomicSync(absolutePath, preview.after);
+        committed.set(preview.path, preview.after);
       }
       return {
         ok: true,
@@ -48,26 +57,32 @@ export class PatchTransactionManager {
         previews: review.previews
       };
     } catch (error) {
-      for (const [relativePath, original] of backups.entries()) {
+      const rollbackFailures = [];
+      for (const [relativePath, written] of [...committed.entries()].reverse()) {
         const absolutePath = this.resolvePath(relativePath);
-        if (original === null) {
-          fs.rmSync(absolutePath, { force: true });
-        } else {
-          fs.writeFileSync(absolutePath, original, 'utf8');
+        try {
+          if (fs.readFileSync(absolutePath, 'utf8') !== written) throw new Error('File changed after transaction write; rollback did not overwrite it.');
+          const original = backups.get(relativePath);
+          if (original === null) fs.rmSync(absolutePath, { force: true });
+          else writeFileAtomicSync(absolutePath, original);
+        } catch (rollbackError) {
+          rollbackFailures.push({ path: relativePath, error: rollbackError.message, code: rollbackError.code || null });
         }
       }
       return {
         ok: false,
-        error: `Patch transaction failed and was rolled back: ${error.message}`,
+        error: `Patch transaction failed${rollbackFailures.length ? '; rollback incomplete' : ' and was rolled back'}: ${error.message}`,
+        rolledBack: rollbackFailures.length === 0,
+        rollbackFailures,
         changedFiles: Array.from(backups.keys())
       };
     }
   }
 
-  previewOperation(operation) {
+  previewOperation(operation, stagedBefore) {
     const normalized = this.normalizeOperation(operation);
     const absolutePath = this.resolvePath(normalized.path);
-    const before = fs.existsSync(absolutePath) ? fs.readFileSync(absolutePath, 'utf8') : null;
+    const before = stagedBefore !== undefined ? stagedBefore : fs.existsSync(absolutePath) ? fs.readFileSync(absolutePath, 'utf8') : null;
     let after = before;
 
     try {
@@ -77,22 +92,12 @@ export class PatchTransactionManager {
         if (before === null) {
           throw new Error('Cannot patch_file because the file does not exist.');
         }
-        if (!before.includes(normalized.search)) {
-          throw new Error('patch_file search text was not found.');
-        }
-        after = before.replace(normalized.search, normalized.replace ?? '');
+        after = replaceTextBlock(before, normalized.search, normalized.replace);
       } else if (normalized.type === 'patch_lines') {
         if (before === null) {
           throw new Error('Cannot patch_lines because the file does not exist.');
         }
-        const lines = before.split('\n');
-        const start = Number(normalized.startLine) - 1;
-        const end = Number(normalized.endLine) - 1;
-        if (!Number.isInteger(start) || !Number.isInteger(end) || start < 0 || end < start || end >= lines.length) {
-          throw new Error(`Invalid line range: ${normalized.startLine}-${normalized.endLine}`);
-        }
-        lines.splice(start, end - start + 1, ...(normalized.replacement ?? '').split('\n'));
-        after = lines.join('\n');
+        after = replaceTextLines(before, normalized.startLine, normalized.endLine, normalized.replacement);
       } else {
         throw new Error(`Unsupported operation type: ${normalized.type}`);
       }

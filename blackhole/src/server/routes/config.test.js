@@ -4,6 +4,8 @@ import fs from 'node:fs';
 import os from 'node:os';
 import path from 'node:path';
 import express from 'express';
+import http from 'node:http';
+import { listenLoopback } from '../../testSupport/loopback.js';
 
 test('Go configuration API and agent routing retain local defaults and a stable conversation header', async t => {
   const dataRoot = fs.mkdtempSync(path.join(os.tmpdir(), 'blackhole-go-api-'));
@@ -16,8 +18,7 @@ test('Go configuration API and agent routing retain local defaults and a stable 
   const app = express();
   app.use(express.json());
   app.use(createConfigRouter());
-  const server = app.listen(0, '127.0.0.1');
-  await new Promise(resolve => server.once('listening', resolve));
+  const server = await listenLoopback(http.createServer(app));
   const realFetch = globalThis.fetch;
   const calls = [];
   let fail = false;

@@ -1,54 +1,45 @@
 {
-  "exportedAt": "2026-11-04T09:49:25.525Z",
-  "baselineRelease": "go-stabilized-13",
-  "baselineSourceHash": "74a715d73af0839fca4c975ae9fdc123c62c506edbed1e62414cfd1236e59add",
-  "publicSourceHash": "65acb443116e9ceb659421be4e94153b887c862e4ed8213f9b88e8dbeef4291a",
+  "schemaVersion": 2,
+  "exportedAt": "2026-11-05T11:47:56.033Z",
+  "baselineRelease": "go-stabilized-31",
+  "baselineSourceHash": "e7b03047c1af65e2ecbb467c03a8533b001721a7df577fa0ccc31c251550dd37",
+  "baselinePackageHash": "921ef4910399705bfba5018bae66b6a0759fa0010f6c10c35a2673c7ca9345af",
+  "publicSourceHash": "6d5739db541728d6f5638e43582398a55c3bc2d758b77d553a6c925686a17dc3",
   "sourceHashAlgorithm": "sha256-normalized-v1",
-  "identicalProductionFiles": 182,
+  "identicalProductionAndFrontendFiles": 187,
   "executableAgentAndFrontendIdenticalToBaseline": true,
-  "promptAndApprovalFilesUnchanged": true,
+  "promptAndApprovalFilesUnchangedForPublication": true,
   "publicCopyDifferences": [
-    "blackhole/scripts/proof-pipeline.js",
-    "blackhole/docs/AUTOCOMPLETE_REAL_REPO_PR_CHECKS.md",
-    "blackhole/docs/DEVELOPMENT_TRANSFER.md",
-    "blackhole/docs/MCP_INTEGRATION.md",
-    "blackhole/docs/OPENCODE_GO.md",
-    "blackhole/docs/PORTFOLIO_DEMO.md",
-    "blackhole/docs/ROOT_CA_OPERATIONS.md",
-    "blackhole/docs/WALKTHROUGH.md",
-    "blackhole/docs/WORK_LOG.md"
+    "blackhole/scripts/proof-pipeline.js: replace personal repository/model fallback paths with repository-relative defaults",
+    "blackhole/scripts/stability-gguf.cjs: portable default large-model path; callers can pass --large-model",
+    "Public English documentation, bootstrap/CI runtime pin, screenshots and sanitized evidence/metadata"
   ],
-  "explanation": "Public-only documentation replacements/portable paths and removal of personal fallback directories in the diagnostic proof helper. This is not a newly built Windows release.",
+  "sourceFingerprintExplanation": "Public diagnostics/build-input fingerprint differs; production agent/frontend files match tested31. Existing verified executables are unchanged, not rebuilt for this export.",
   "omitted": [
+    "original private Git history",
     "models",
-    "Git history",
-    "runtime binaries",
     "installed dependencies",
+    "runtime binaries",
     "old builds",
-    "user data/config/keys",
-    "developer certificates",
-    "private raw evidence",
-    "live MCP configuration (audited example retained)"
+    "user settings/keys",
+    "conversations",
+    "private raw diagnostics",
+    "developer signing material",
+    "live MCP configuration"
   ],
   "presentation": {
-    "addedAt": "2026-11-04T10:14:43.855Z",
-    "readme": "README.md",
-    "page": "docs/index.html",
-    "demo": "docs/DEMO.md",
-    "validation": "docs/PRESENTATION_VALIDATION.json",
-    "scriptedScreenshots": true,
-    "remotePublished": false,
-    "documentationLanguage": "en",
+    "language": "en",
     "screenshotLocale": "en-US",
-    "localizedAt": "2026-11-04T14:13:37.065Z"
+    "scriptedScreenshots": true,
+    "liveModelRecording": false
   },
   "publication": {
     "repository": "https://github.com/ColorlessDigital/BlackHoleAgent",
     "branch": "main",
-    "releaseTag": "v1.0.0-stabilized.13",
+    "releaseTag": "v1.0.0-stabilized.31",
     "pages": "https://colorlessdigital.github.io/BlackHoleAgent/",
-    "manifestScope": "Public source files as exported with Git-standard LF text endings; SOURCE_MANIFEST.json excludes itself.",
     "originalPrivateGitHistoryIncluded": false,
-    "runtimeSourceBehaviorChanged": false
+    "previousReleaseAssetsPreserved": "v1.0.0-stabilized.13",
+    "manifestScope": "Git-normalized LF public files; SOURCE_MANIFEST excludes itself."
   }
 }

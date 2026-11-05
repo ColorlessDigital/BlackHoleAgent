@@ -1,0 +1,215 @@
+{
+  "schemaVersion": 1,
+  "build": "go-stabilized-31",
+  "evidenceType": "sanitized maintainer immutable-package results; not rerun live during publication",
+  "sourceHash": "e7b03047c1af65e2ecbb467c03a8533b001721a7df577fa0ccc31c251550dd37",
+  "packageHash": "921ef4910399705bfba5018bae66b6a0759fa0010f6c10c35a2673c7ca9345af",
+  "backendConsecutiveRuns": [
+    {
+      "total": 508,
+      "passed": 507,
+      "failed": 0,
+      "skipped": 1
+    },
+    {
+      "total": 508,
+      "passed": 507,
+      "failed": 0,
+      "skipped": 1
+    },
+    {
+      "total": 508,
+      "passed": 507,
+      "failed": 0,
+      "skipped": 1
+    }
+  ],
+  "frontend": {
+    "passed": 10
+  },
+  "metadata": {
+    "passed": 5
+  },
+  "completionRegression": {
+    "passed": 9,
+    "total": 9,
+    "baselineBuild30": {
+      "passed": 2,
+      "failed": 7
+    },
+    "scope": "Scripted model output with actual packaged executor/default verifier; expected unverified stops count as correct outcomes.",
+    "cases": [
+      {
+        "name": "syntax-pass-behavior-wrong-without-tests",
+        "status": "incomplete",
+        "reason": "behavioral_verification_unavailable",
+        "modelCalls": 1,
+        "repairCycles": 0,
+        "independentBehaviorExitCode": 1,
+        "protectedFilesPreserved": true
+      },
+      {
+        "name": "configured-noop-is-not-a-behavioral-test",
+        "status": "incomplete",
+        "reason": "behavioral_verification_unavailable",
+        "modelCalls": 1,
+        "repairCycles": 0,
+        "independentBehaviorExitCode": 0,
+        "protectedFilesPreserved": true
+      },
+      {
+        "name": "syntax-only-test-script",
+        "status": "incomplete",
+        "reason": "behavioral_verification_unavailable",
+        "modelCalls": 1,
+        "repairCycles": 0,
+        "independentBehaviorExitCode": 1,
+        "protectedFilesPreserved": true
+      },
+      {
+        "name": "all-tests-skipped",
+        "status": "incomplete",
+        "reason": "behavioral_verification_unavailable",
+        "modelCalls": 1,
+        "repairCycles": 0,
+        "independentBehaviorExitCode": 0,
+        "protectedFilesPreserved": true
+      },
+      {
+        "name": "new-source-existing-behavior-test",
+        "status": "completed",
+        "reason": "completed",
+        "modelCalls": 2,
+        "repairCycles": 1,
+        "independentBehaviorExitCode": 0,
+        "protectedFilesPreserved": true
+      },
+      {
+        "name": "existing-tests-detect-and-repair-wrong-code",
+        "status": "completed",
+        "reason": "completed",
+        "modelCalls": 2,
+        "repairCycles": 1,
+        "independentBehaviorExitCode": 0,
+        "protectedFilesPreserved": true
+      },
+      {
+        "name": "declared-test-runner-retains-loader",
+        "status": "completed",
+        "reason": "completed",
+        "modelCalls": 1,
+        "repairCycles": 0,
+        "independentBehaviorExitCode": 0,
+        "protectedFilesPreserved": true
+      },
+      {
+        "name": "one-package-tested-does-not-cover-another",
+        "status": "incomplete",
+        "reason": "behavioral_verification_unavailable",
+        "modelCalls": 1,
+        "repairCycles": 0,
+        "independentBehaviorExitCode": null,
+        "protectedFilesPreserved": true
+      },
+      {
+        "name": "documentation-does-not-require-code-tests",
+        "status": "completed",
+        "reason": "completed",
+        "modelCalls": 1,
+        "repairCycles": 0,
+        "independentBehaviorExitCode": null,
+        "protectedFilesPreserved": true
+      }
+    ]
+  },
+  "realGo": {
+    "passed": 8,
+    "total": 8,
+    "model": "glm-5.3-flash",
+    "contextLimit": 8192,
+    "outputLimit": 8192,
+    "defaultProductVerifier": true,
+    "falseCompletions": 0,
+    "cases": [
+      {
+        "name": "addition-1",
+        "status": "completed",
+        "independentBehaviorExitCode": 0,
+        "protectedFilesPreserved": true
+      },
+      {
+        "name": "mean-1",
+        "status": "completed",
+        "independentBehaviorExitCode": 0,
+        "protectedFilesPreserved": true
+      },
+      {
+        "name": "clamp-1",
+        "status": "completed",
+        "independentBehaviorExitCode": 0,
+        "protectedFilesPreserved": true
+      },
+      {
+        "name": "multi-file-1",
+        "status": "completed",
+        "independentBehaviorExitCode": 0,
+        "protectedFilesPreserved": true
+      },
+      {
+        "name": "addition-2",
+        "status": "completed",
+        "independentBehaviorExitCode": 0,
+        "protectedFilesPreserved": true
+      },
+      {
+        "name": "mean-2",
+        "status": "completed",
+        "independentBehaviorExitCode": 0,
+        "protectedFilesPreserved": true
+      },
+      {
+        "name": "clamp-2",
+        "status": "completed",
+        "independentBehaviorExitCode": 0,
+        "protectedFilesPreserved": true
+      },
+      {
+        "name": "multi-file-2",
+        "status": "completed",
+        "independentBehaviorExitCode": 0,
+        "protectedFilesPreserved": true
+      }
+    ]
+  },
+  "realGguf": {
+    "model": "Qwen3-4B-Instruct-2507-Q8_0",
+    "codingPassed": 3,
+    "codingTotal": 3,
+    "checksPassed": 10,
+    "checksTotal": 10,
+    "contextLimit": 8192,
+    "codingOutputCap": 4096,
+    "defaultProductVerifier": true,
+    "existingTestsPreserved": true
+  },
+  "workspaceRetentionControl": {
+    "workspaces": 80,
+    "boundedRetention": true,
+    "explicitDiagnosticGC": true
+  },
+  "savedConfigAndCredentialFilesUnchanged": true,
+  "newLiveProviderCallsDuringPublication": false,
+  "noNewNaturalGcHourOr35BCodingClaim": true,
+  "promptAndApprovalPoliciesChangedForPublication": false,
+  "limits": [
+    "Passing existing assertions or an explicitly declared project test command does not prove all natural-language requirements, test quality or full coverage.",
+    "Recognized zero/skipped/static checks are distinguished. Unknown successful project-declared test commands retain that evidence source, not universal semantic certification.",
+    "Bounded standalone Node-test discovery and the listed source extensions do not implement generic test synthesis or execution for every language/artifact.",
+    "No product test files are auto-generated on missing checks; changes remain saved and unverified until an appropriate check is supplied.",
+    "Real Go tests use in-memory GLM 5.3 Flash 8192 context/output, not a certification of arbitrary saved model/budget settings or every provider model.",
+    "The 4B GGUF diagnostic uses existing performance settings with phase-sized context/output caps. No new 35B coding or 60-minute soak in this task.",
+    "Earlier build27 4B failure/recovery and build30 baseline failures are preserved, not relabeled as successes.",
+    "Native Windows symlink privilege remains one skip. Clean Windows installation/upgrade, other-PC key transfer and visible VS Code host E2E remain unexecuted.",
+    "Development dependency advisories and build-PC-only self-signed trust remain. The original diagnostics did not publish or interact with the desktop; publication is recorded separately. Saved keys/models were unchanged."
+  ]
+}

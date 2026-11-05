@@ -114,7 +114,14 @@ function collectXmlMatches(source, matches) {
   collectMatches(
     /<read_file\s+[^>]*path=["']([^"']+)["'][^>]*\/?>/i,
     'read_file',
-    (m) => ({ path: m[1] })
+    (m) => {
+      const params = { path: m[1] };
+      for (const name of ['startLine', 'lineCount']) {
+        const value = m[0].match(new RegExp(`\\b${name}=["']([^"']*)["']`, 'i'));
+        if (value) params[name] = Number(value[1]);
+      }
+      return params;
+    }
   );
 
   collectMatches(
@@ -492,13 +499,15 @@ No tool from that response was executed. Return the corrected native function ca
 The function name must exactly match a declared name; put all parameters in its JSON argument object, not in the name. Do not include XML markup in native function names.`;
   }
   const tool = malformedInfo.tool || 'the tool';
-  const exampleSnippet = tool === 'write_file'
-    ? '<write_file path="path/to/file.js">content</write_file>'
-    : tool === 'read_file'
-      ? '<read_file path="path/to/file.js" />'
-      : tool === 'list_dir'
-        ? '<list_dir path="." />'
-        : `<${tool} />`;
+  const examples = {
+    write_file: '<write_file path="path/to/file.js">content</write_file>',
+    read_file: '<read_file path="path/to/file.js" />',
+    list_dir: '<list_dir path="." />',
+    patch_file: '<patch_file path="path/to/file.js"><search>old code</search><replace>new code</replace></patch_file>',
+    patch_lines: '<patch_lines path="path/to/file.js" startLine="1" endLine="2">replacement code</patch_lines>',
+    run_command: '<run_command command="echo example" />'
+  };
+  const exampleSnippet = examples[tool] || `<${tool} />`;
 
   return `[System Correction Notice]
 Your previous response appeared to call "${tool}", but the format was incomplete or invalid (${malformedInfo.reason}).

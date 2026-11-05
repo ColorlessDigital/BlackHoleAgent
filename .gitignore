@@ -27,6 +27,7 @@ dist/
 # --- Bundled runtimes (recreated by prepare-platform-runtime / setup-kali) ---
 node-v20.19.2-win-x64/
 node-v24.21.0-win-x64/
+node-v24.22.2-win-x64/
 blackhole/resources/node-runtime/current/
 blackhole/resources/llama.cpp/
 blackhole/resources/node-runtime/

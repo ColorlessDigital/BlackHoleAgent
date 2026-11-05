@@ -109,3 +109,20 @@ test('compaction bounds its newest tool payload and preserves the latest real qu
   assert.ok(result.messages.every(m => m.content.length <= 6000));
   assert.equal(result.messages[0].content, 'Original goal');
 });
+
+test('compaction retains the active request and all its small observations outside the recent tail', async () => {
+  const goal = 'Read release.txt and quote its current value exactly.';
+  const history = [{ role: 'user', content: 'Fix the previous implementation.' }, ...makeMessages(14),
+    { role: 'user', content: goal },
+    { role: 'assistant', content: 'Reading the requested release value.' },
+    { role: 'user', content: '[Tool Result (Tool: read_file)]\nrelease.txt: release-2026.11-current' },
+    ...Array.from({ length: 6 }, (_, i) => ({ role: i % 2 ? 'user' : 'assistant',
+      content: i % 2 ? `[Tool Result (Tool: read_file)]\nAdditional file ${i}` : 'Inspecting supporting code.' }))];
+  let transcript;
+  const result = await compactConversation({ messages: history, limitTokens: 1800, userGoal: goal,
+    summarize: async text => { transcript = text; return 'Previous implementation was repaired.'; } });
+  assert.equal(result.compacted, true);
+  assert.doesNotMatch(transcript, /release-2026\.11-current/);
+  assert.deepEqual(result.messages.slice(-9), history.slice(-9));
+  assert.ok(result.messages.some(message => message.content === goal));
+});

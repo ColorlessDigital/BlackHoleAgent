@@ -1,6 +1,6 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="1280" height="640" viewBox="0 0 1280 640" role="img" aria-labelledby="title desc">
   <title id="title">BlackHole execution architecture</title>
-  <desc id="desc">The desktop UI connects to the agent core. The core routes model calls to local llama.cpp or optional cloud gateways, executes tools through existing approval and validation, then records verification and checkpoints for recovery.</desc>
+  <desc id="desc">Build31 connects the UI and selected model to tools through existing approval. Behavioral assertions may pass or fail; unavailable checks preserve unverified changes and a checkpoint. Context engines have bounded strong LRU ownership.</desc>
   <defs><marker id="arrow" markerWidth="8" markerHeight="8" refX="7" refY="4" orient="auto"><path d="M0 0L8 4L0 8" fill="#52665b"/></marker></defs>
   <rect width="1280" height="640" fill="#f5f8f6"/>
   <g font-family="Segoe UI,Arial,sans-serif" fill="#172b21">
@@ -27,7 +27,7 @@
     <text x="73" y="306" font-size="16">React + Electron</text>
     <text x="350" y="232" font-size="20" font-weight="700">Agent core</text>
     <text x="350" y="266" font-size="16">Plan → Execute → Verify</text>
-    <text x="350" y="298" font-size="16">Context + model routing</text>
+    <text x="350" y="298" font-size="16">Context LRU + routing</text>
     <text x="350" y="329" font-size="16">Bounded recovery</text>
     <text x="690" y="168" font-size="20" font-weight="700">Local inference</text>
     <text x="690" y="203" font-size="16">llama.cpp + GGUF</text>
@@ -36,8 +36,8 @@
     <text x="690" y="343" font-size="20" font-weight="700">Tools + existing approval / validation</text>
     <text x="690" y="376" font-size="16">Files · terminal · web · MCP · IDE bridge</text>
     <text x="690" y="406" font-size="15" fill="#52665b">A tool result is checked before the workflow continues.</text>
-    <text x="350" y="518" font-size="20" font-weight="700">Evidence + recovery state</text>
-    <text x="350" y="551" font-size="16">Test results · execution journal · checkpoints · context summary</text>
+    <text x="350" y="518" font-size="20" font-weight="700">Behavior passed / failed / unverified</text>
+    <text x="350" y="551" font-size="16">Existing tests · saved edits · execution journal · checkpoints</text>
     <text x="48" y="617" font-size="14" fill="#52665b">Conceptual diagram, not a claim that every task succeeds or every tool runs offline.</text>
   </g>
 </svg>

@@ -17,7 +17,7 @@ export function runTerminalCommand(command, options = {}) {
   return new Promise((resolve) => {
     const child = spawn(shell, shellArgs, {
       cwd,
-      env: { ...process.env, PAGER: 'cat' },
+      env: { ...process.env, ...options.env, PAGER: 'cat' },
       windowsVerbatimArguments: process.platform === 'win32',
       windowsHide: process.platform === 'win32'
     });

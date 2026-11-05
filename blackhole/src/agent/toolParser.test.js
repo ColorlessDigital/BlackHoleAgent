@@ -10,6 +10,32 @@ import {
   buildToolCorrectionPrompt
 } from './toolParser.js';
 
+test('XML ranged reads retain both bounds instead of silently reading the whole file', () => {
+  const call = parseToolCall('<read_file lineCount="20" path="lib/argument.js" startLine="70" />');
+  assert.deepStrictEqual(call, { tool: 'read_file', params: { path: 'lib/argument.js', startLine: 70, lineCount: 20 } });
+  assert.deepStrictEqual(parseToolCall("<read_file path='file.js' startLine='0' lineCount='201'/>").params,
+    { path: 'file.js', startLine: 0, lineCount: 201 });
+  assert.equal(parseToolCall('<read_file path="file.js" startLine="-1"/>').params.startLine, -1);
+  assert.ok(Number.isNaN(parseToolCall('<read_file path="file.js" lineCount="invalid"/>').params.lineCount));
+  assert.equal(stripToolCallMarkup('<read_file path="file.js" startLine="10" lineCount="2"/>'), '');
+});
+
+test('mutation and command correction examples are executable tool shapes with required arguments', () => {
+  for (const tool of ['patch_file', 'patch_lines', 'run_command']) {
+    const prompt = buildToolCorrectionPrompt({ tool, reason: 'fixture malformed call' });
+    const example = prompt.slice(prompt.indexOf('Example:\n') + 'Example:\n'.length);
+    const parsed = parseAllToolCalls(example);
+    assert.equal(parsed.length, 1);
+    assert.equal(parsed[0].tool, tool);
+    if (tool === 'patch_file') assert.deepStrictEqual(parsed[0].params,
+      { path: 'path/to/file.js', search: 'old code', replace: 'new code' });
+    if (tool === 'patch_lines') assert.deepStrictEqual(parsed[0].params,
+      { path: 'path/to/file.js', startLine: 1, endLine: 2, replacement: 'replacement code' });
+    if (tool === 'run_command') assert.equal(parsed[0].params.command, 'echo example');
+    assert.equal(detectMalformedToolCall(example), null);
+  }
+});
+
 test('toolParser - parseToolCall', async (t) => {
   await t.test('should return null for invalid or empty content', () => {
     assert.strictEqual(parseToolCall(''), null);

@@ -1,16 +1,24 @@
-# React + Vite
+# BlackHole Frontend
 
-This template provides a minimal setup to get React working in Vite with HMR and some ESLint rules.
+React 19 and TypeScript UI, built with Vite 8. This is the desktop agent frontend,
+not a standalone cloud service.
 
-Currently, two official plugins are available:
+Install from the repository bootstrap, then use:
 
-- [@vitejs/plugin-react](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react) uses [Oxc](https://oxc.rs)
-- [@vitejs/plugin-react-swc](https://github.com/vitejs/vite-plugin-react/blob/main/packages/plugin-react-swc) uses [SWC](https://swc.rs/)
+```powershell
+npm --prefix blackhole/frontend test
+npm --prefix blackhole/frontend run lint
+npm --prefix blackhole/frontend run typecheck
+npm --prefix blackhole/frontend run build
+```
 
-## React Compiler
+For development, start the BlackHole backend and use the existing API/session
+bootstrap. Production assets are packaged into Electron.
 
-The React Compiler is not enabled on this template because of its impact on dev & build performances. To add it, see [this documentation](https://react.dev/learn/react-compiler/installation).
+The interface shows agent/tool state, verification, separate reasoning records
+and checkpoint recovery. A source change can remain incomplete when behavioral
+checks are unavailable; that is distinct from a failed assertion or provider error.
 
-## Expanding the ESLint configuration
-
-If you are developing a production application, we recommend using TypeScript with type-aware lint rules enabled. Check out the [TS template](https://github.com/vitejs/vite/tree/main/packages/create-vite/template-react-ts) for information on how to integrate TypeScript and [`typescript-eslint`](https://typescript-eslint.io) in your project.
+Public screenshots use the real frontend with scripted API/SSE inputs:
+[image provenance](../../docs/images/README.md). No real user session is required.
+Visible extension-host E2E and clean-PC installation are separate from headless UI checks.

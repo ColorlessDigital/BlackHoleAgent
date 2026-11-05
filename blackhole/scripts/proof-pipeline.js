@@ -693,15 +693,13 @@ function uniqueExistingPaths(paths) {
 }
 
 function defaultLocalRepos() {
-  // Public export: portable defaults replace personal directories.
   return [
     PROJECT_ROOT,
-    path.resolve(PROJECT_ROOT, '..', 'vscode-blackhole')
+    path.resolve(PROJECT_ROOT, '..', 'vscode-blackhole'),
   ];
 }
 
 function defaultModelDir() {
-  // Public export: weights are downloaded on the destination machine.
   return path.join(PROJECT_ROOT, 'models');
 }
 
@@ -718,7 +716,7 @@ function buildEnvironmentSummary() {
 
 function buildNodeRuntimePath() {
   const candidates = [
-    path.resolve(PROJECT_ROOT, '..', 'node-v24.21.0-win-x64'),
+    path.resolve(PROJECT_ROOT, '..', 'node-v24.22.2-win-x64'),
     path.join(PROJECT_ROOT, 'resources', 'node-runtime', 'current'),
     process.env.Path || process.env.PATH || ''
   ].filter(Boolean);

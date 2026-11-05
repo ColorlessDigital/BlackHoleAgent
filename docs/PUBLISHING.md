@@ -1,52 +1,58 @@
-# GitHub Presentation and Publishing
+# Publishing BlackHole Source and Windows Assets
 
 Repository: [ColorlessDigital/BlackHoleAgent](https://github.com/ColorlessDigital/BlackHoleAgent).
-Project page: [GitHub Pages](https://colorlessdigital.github.io/BlackHoleAgent/).
-Use this guide for initial publication and later updates; check Pages/Actions
-and Releases for their actual deployment state.
+[Project page](https://colorlessdigital.github.io/BlackHoleAgent/).
 
-## Repository Front Page
+## Version Discipline
 
-The root README.md is the primary English introduction. Keep `docs/images`
-alongside it so relative image paths resolve. Uploading README alone omits its
-images. Relative links avoid assumptions about a fork's owner or branch.
+The current source/docs target stabilized31. Keep previous tags and release assets
+unchanged. Build30's hour, build29's checkpoint work and build13's former public
+baseline remain historical, not newer executable measurements.
 
-Official reference: [About READMEs](https://docs.github.com/en/repositories/managing-your-repositorys-settings-and-features/customizing-your-repository/about-readmes).
+Use root PUBLIC_SOURCE_PROVENANCE.json for maintainer-binary and public-source
+fingerprints, PUBLIC_VALIDATION.json for independently rerun source checks, and
+docs/validation for sanitized packaged evidence. Do not copy internal raw logs.
 
-## GitHub Pages
+## Public Source
 
-`docs/index.html`, `docs/styles.css`, `docs/site.js` and `docs/images` form a
-buildless static site. It includes `.nojekyll` and does not use analytics,
-external fonts, credentials or real provider calls.
+Export source, tests, lockfiles, audited example configuration, docs and demo
+assets. Exclude installed dependencies, runtime binaries, models, user data,
+secrets, private conversations, diagnostics, signing keys and original private
+Git history. Preserve owner attribution and third-party terms.
 
-After publication authority and the public scope are confirmed:
+The diagnostic proof/GGUF helper default paths are portable in the export.
+No agent runtime, censorship, prompts/rules or approval-policy edit is introduced
+by publication. Verify this against the tested binary source, not merely Git HEAD.
 
-1. Push only the audited public source. Do not reuse the original private Git
-   history, runtime data or private backup.
-2. In Settings → Pages, select `Deploy from a branch`.
-3. Select the actual source branch and `/docs` publishing directory.
-4. Verify the deployment status and the actual URL returned by GitHub.
+After final file changes, regenerate SOURCE_MANIFEST.json from Git-normalized
+public bytes, excluding itself. Inventory lockfile versions/licenses again.
+Scan text, binaries, archives and metadata; compare known stored credentials
+in memory without printing or copying them into reports.
 
-Official reference: [Configure a Pages publishing source](https://docs.github.com/en/pages/getting-started-with-github-pages/configuring-a-publishing-source-for-your-github-pages-site).
+## English Presentation
 
-No extra automatic publishing workflow was added. Preparing a file is not, by
-itself, authorization to publish it.
+Keep README.md and README.en.md synchronized. docs/index.html/styles.css/site.js
+and docs/images form the buildless GitHub Pages site. The UI screenshots use
+scripted, labeled public data; live validation evidence is separate.
 
-## Release Assets and Documentation Updates
+Preserve the difference between saved edits, verified behavior and unavailable
+checks. Do not turn a passing fixture into an arbitrary-task claim.
 
-Executable assets belong in GitHub Releases, not the source history. Keep
-SHA-256 verification and explicit warnings for development prereleases.
-Preserve existing tags and binary assets when only documentation changes.
-An additional English-source archive can identify the newer documentation commit
-without moving the tag of an existing binary release.
+## Release
 
-## Pre-Publication Checklist
+Create a new development prerelease tag, upload the unchanged verified portable,
+Setup and portable ZIP, the audited source ZIP, notices, release identity and
+SHA256SUMS. Compare server asset digests with local SHA-256.
 
-- Exclude credentials, personal conversations, config/data, diagnostics,
-  certificates, private backups and original private Git history.
-- Keep the scripted-demo labels and image provenance statements.
-- Review public author/publisher attribution and technical summaries.
-- Review known audit findings and unverified scopes in PUBLIC_VALIDATION.json.
-- Retain LICENSE, NOTICE, dependency terms, images, tests and lockfiles.
+Build31 Setup no longer imports/removes trust-store certificates automatically.
+Legacy13/14 warnings remain relevant to their unchanged assets. Development
+signing on the build machine still provisions a self-signed CA; this is not
+public-CA trust or clean-PC installation proof.
 
-Documentation localization does not modify prompts, censorship or approval policy.
+## Pages and Final Checks
+
+Pages uses main and /docs. Verify the resulting deployment commit/status and live
+page, not just a successful Git push. Check navigation, relative assets, release
+links and desktop/mobile layout. Never publish before the privacy/source checks.
+Use noreply author metadata for new maintainer commits; existing public history
+is preserved rather than silently rewritten.

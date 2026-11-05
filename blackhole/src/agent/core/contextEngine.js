@@ -1338,7 +1338,13 @@ function getEntryPriority(name) {
   return 10;
 }
 
+const MAX_CACHED_WORKSPACES = 4;
 const contextEngineCache = new Map();
+const contextEngineReferences = new Map();
+let contextEngineEvictions = 0;
+const contextEngineFinalizer = new FinalizationRegistry(({ key, reference }) => {
+  if (contextEngineReferences.get(key) === reference) contextEngineReferences.delete(key);
+});
 
 async function waitForScan(pending, signal) {
   signal?.throwIfAborted();
@@ -1354,12 +1360,39 @@ async function waitForScan(pending, signal) {
 
 export function getContextEngine(workspaceRoot = '.') {
   const resolved = path.resolve(workspaceRoot);
-  if (!contextEngineCache.has(resolved)) {
-    contextEngineCache.set(resolved, new ProjectContextEngine(resolved));
+  const key = process.platform === 'win32' ? resolved.toLowerCase() : resolved;
+  let engine = contextEngineCache.get(key) || contextEngineReferences.get(key)?.deref();
+  if (!engine) {
+    const previous = contextEngineReferences.get(key);
+    if (previous) contextEngineFinalizer.unregister(previous);
+    engine = new ProjectContextEngine(resolved);
+    const reference = new WeakRef(engine);
+    contextEngineReferences.set(key, reference);
+    contextEngineFinalizer.register(engine, { key, reference }, reference);
   }
-  return contextEngineCache.get(resolved);
+  // Drop only the cache's ownership. Callers and pending scans keep their engine
+  // intact, and the weak lookup preserves sharing while any caller still uses it.
+  contextEngineCache.delete(key);
+  contextEngineCache.set(key, engine);
+  while (contextEngineCache.size > MAX_CACHED_WORKSPACES) {
+    contextEngineCache.delete(contextEngineCache.keys().next().value);
+    contextEngineEvictions++;
+  }
+  return engine;
+}
+
+export function getContextEngineCacheStats() {
+  return {
+    maxRetainedWorkspaces: MAX_CACHED_WORKSPACES,
+    retainedWorkspaces: contextEngineCache.size,
+    trackedWorkspaces: contextEngineReferences.size,
+    evictions: contextEngineEvictions
+  };
 }
 
 export function clearAllContextEngineCaches() {
   contextEngineCache.clear();
+  for (const reference of contextEngineReferences.values()) contextEngineFinalizer.unregister(reference);
+  contextEngineReferences.clear();
+  contextEngineEvictions = 0;
 }

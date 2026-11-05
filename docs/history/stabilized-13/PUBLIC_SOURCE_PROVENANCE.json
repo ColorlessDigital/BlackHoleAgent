@@ -1,0 +1,54 @@
+{
+  "exportedAt": "2026-11-04T09:49:25.525Z",
+  "baselineRelease": "go-stabilized-13",
+  "baselineSourceHash": "74a715d73af0839fca4c975ae9fdc123c62c506edbed1e62414cfd1236e59add",
+  "publicSourceHash": "65acb443116e9ceb659421be4e94153b887c862e4ed8213f9b88e8dbeef4291a",
+  "sourceHashAlgorithm": "sha256-normalized-v1",
+  "identicalProductionFiles": 182,
+  "executableAgentAndFrontendIdenticalToBaseline": true,
+  "promptAndApprovalFilesUnchanged": true,
+  "publicCopyDifferences": [
+    "blackhole/scripts/proof-pipeline.js",
+    "blackhole/docs/AUTOCOMPLETE_REAL_REPO_PR_CHECKS.md",
+    "blackhole/docs/DEVELOPMENT_TRANSFER.md",
+    "blackhole/docs/MCP_INTEGRATION.md",
+    "blackhole/docs/OPENCODE_GO.md",
+    "blackhole/docs/PORTFOLIO_DEMO.md",
+    "blackhole/docs/ROOT_CA_OPERATIONS.md",
+    "blackhole/docs/WALKTHROUGH.md",
+    "blackhole/docs/WORK_LOG.md"
+  ],
+  "explanation": "Public-only documentation replacements/portable paths and removal of personal fallback directories in the diagnostic proof helper. This is not a newly built Windows release.",
+  "omitted": [
+    "models",
+    "Git history",
+    "runtime binaries",
+    "installed dependencies",
+    "old builds",
+    "user data/config/keys",
+    "developer certificates",
+    "private raw evidence",
+    "live MCP configuration (audited example retained)"
+  ],
+  "presentation": {
+    "addedAt": "2026-11-04T10:14:43.855Z",
+    "readme": "README.md",
+    "page": "docs/index.html",
+    "demo": "docs/DEMO.md",
+    "validation": "docs/PRESENTATION_VALIDATION.json",
+    "scriptedScreenshots": true,
+    "remotePublished": false,
+    "documentationLanguage": "en",
+    "screenshotLocale": "en-US",
+    "localizedAt": "2026-11-04T14:13:37.065Z"
+  },
+  "publication": {
+    "repository": "https://github.com/ColorlessDigital/BlackHoleAgent",
+    "branch": "main",
+    "releaseTag": "v1.0.0-stabilized.13",
+    "pages": "https://colorlessdigital.github.io/BlackHoleAgent/",
+    "manifestScope": "Public source files as exported with Git-standard LF text endings; SOURCE_MANIFEST.json excludes itself.",
+    "originalPrivateGitHistoryIncluded": false,
+    "runtimeSourceBehaviorChanged": false
+  }
+}

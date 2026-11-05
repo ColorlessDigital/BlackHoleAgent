@@ -12,19 +12,7 @@ test('provider endpoints include one API version and preserve proxy paths', () =
 
 function sseBody(frames) {
   const text = frames.map((f) => `data: ${JSON.stringify(f)}\n\n`).join('') + 'data: [DONE]\n\n';
-  const bytes = new TextEncoder().encode(text);
-  return {
-    getReader() {
-      let sent = false;
-      return {
-        async read() {
-          if (sent) return { done: true, value: undefined };
-          sent = true;
-          return { done: false, value: bytes };
-        }
-      };
-    }
-  };
+  return new Response(text, { headers: { 'Content-Type': 'text/event-stream' } });
 }
 
 test('opengo runtime requires baseUrl', async () => {
@@ -43,14 +31,11 @@ test('opengo chatStream parses deltas and server usage', async () => {
     seen.url = String(url);
     seen.body = JSON.parse(options.body);
     seen.auth = options.headers?.Authorization || '';
-    return {
-      ok: true,
-      body: sseBody([
+    return sseBody([
         { choices: [{ delta: { reasoning_content: 'First thought. ' } }] },
         { choices: [{ delta: { content: 'hello ' } }] },
         { choices: [{ delta: { content: 'world', reasoning: 'Second thought.' } }], usage: { prompt_tokens: 10, completion_tokens: 5 } }
-      ])
-    };
+      ]);
   };
   try {
     const rt = new OpenaiCompatRuntime({ opengoBaseUrl: 'http://gateway:8080/', opengoApiKey: 'k', opengoEnabled: true });
@@ -125,7 +110,7 @@ test('opengo cancels an active request when the caller stops', async () => {
 
 test('opengo chatStream surfaces HTTP errors', async () => {
   const realFetch = globalThis.fetch;
-  globalThis.fetch = async () => ({ ok: false, status: 401, text: async () => 'bad key' });
+  globalThis.fetch = async () => new Response('bad key', { status: 401 });
   try {
     const rt = new OpenaiCompatRuntime({ opengoBaseUrl: 'http://gateway:8080', opengoEnabled: true });
     await assert.rejects(() => rt.chatStream({ model: 'opengo:m', messages: [] }, () => {}), /HTTP 401/);

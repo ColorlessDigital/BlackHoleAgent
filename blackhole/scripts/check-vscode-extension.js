@@ -10,9 +10,9 @@ const BLACKHOLE_ROOT = path.dirname(PROJECT_ROOT);
 const EXTENSION_ROOT = path.join(BLACKHOLE_ROOT, 'vscode-blackhole');
 
 function findNodeExecutable() {
-  const bundledNode = path.join(BLACKHOLE_ROOT, 'node-v24.21.0-win-x64', 'node.exe');
+  const bundledNode = path.join(BLACKHOLE_ROOT, 'node-v24.22.2-win-x64', 'node.exe');
   if (fs.existsSync(bundledNode)) return bundledNode;
-  const linuxBundledNode = path.join(BLACKHOLE_ROOT, `node-v24.21.0-${process.platform}-${process.arch}`, 'bin', 'node');
+  const linuxBundledNode = path.join(BLACKHOLE_ROOT, `node-v24.22.2-${process.platform}-${process.arch}`, 'bin', 'node');
   if (fs.existsSync(linuxBundledNode)) return linuxBundledNode;
   const resourceNode = process.platform === 'win32'
     ? path.join(PROJECT_ROOT, 'resources', 'node-runtime', 'current', 'node.exe')

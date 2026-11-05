@@ -1,6 +1,21 @@
+import { goalLikelyRequiresMutation } from './phaseGuards.js';
+
+function goalRequiresImplementation(goal) {
+  return goalLikelyRequiresMutation(goal) || /(?:^|[.!?;]\s+|\n\s*)(?:please\s+)?(?:fix|change|update|edit|modify|create|add|remove|delete|implement|refactor|repair|restore|write|patch|build|generate)\b/i.test(String(goal || ''));
+}
+
+export function isObservationGoal(goal) {
+  if (goalRequiresImplementation(goal)) return false;
+  const text = String(goal || '').trim();
+  return /\b(?:observation\s+only|read[- ]only)\b|읽기\s*전용|변경\s*없이|수정\s*없이|관찰\s*만/.test(text.toLowerCase())
+    || /^(?:please\s+)?(?:(?:can|could|would|will)\s+you\s+(?:please\s+)?)?(?:read|inspect|review|list|show|report|check|verify|explain|describe|summari[sz]e|evaluate|analy[sz]e|tell\s+me|what|why|who|when|where|how)\b/i.test(text)
+    || /(?:설명|평가|분석|조회)\s*(?:해줘|해주세요|하라|하세요)?[.!?]*$/.test(text);
+}
+
 export class TaskGraphPlanner {
   buildTaskGraph({ goal = '', planSteps = [], workspaceSummary = null } = {}) {
-    const normalizedSteps = this.normalizePlanSteps(planSteps);
+    const normalizedSteps = this.normalizePlanSteps(planSteps).filter(step =>
+      !isObservationGoal(goal) || !['implement', 'patch'].includes(step.type));
     const steps = normalizedSteps.length > 0
       ? normalizedSteps
       : this.defaultStepsForGoal(goal, workspaceSummary);
@@ -73,6 +88,13 @@ export class TaskGraphPlanner {
       );
     }
 
+    if (event.completed === true) {
+      for (const node of nodes) {
+        node.status = 'completed';
+        node.evidence.push('Current request completed with its required execution evidence.');
+      }
+    }
+
     this.refreshReadyNodes(nodes);
     return {
       ...graph,
@@ -84,6 +106,9 @@ export class TaskGraphPlanner {
 
   resumeTaskGraph(graph) {
     if (!graph?.nodes?.length) return graph;
+    if (isObservationGoal(graph.goal) && graph.nodes.some(node => ['implement', 'patch'].includes(node.type))) {
+      return { ...this.buildTaskGraph({ goal: graph.goal }), migratedFrom: 'observation_graph_with_implementation_steps' };
+    }
     const nodes = graph.nodes.map(node => ({
       ...node,
       evidence: [...(node.evidence || [])]
@@ -148,6 +173,12 @@ export class TaskGraphPlanner {
 
   defaultStepsForGoal(goal, workspaceSummary) {
     const hasCode = (workspaceSummary?.sourceFileCount || 0) > 0;
+    if (isObservationGoal(goal)) {
+      return [
+        { title: `Inspect the requested information: ${String(goal).slice(0, 160)}`, type: 'analyze' },
+        { title: 'Answer the current request using the observed evidence', type: 'summarize' }
+      ];
+    }
     return [
       { title: hasCode ? 'Inspect relevant project structure and symbols' : 'Inspect workspace structure', type: 'analyze' },
       { title: `Implement the requested change: ${String(goal || 'user goal').slice(0, 120)}`, type: 'implement' },
@@ -184,3 +215,4 @@ export class TaskGraphPlanner {
     return `Tasks: ${nodes.length}, ready: ${counts.ready || 0}, in_progress: ${counts.in_progress || 0}, completed: ${counts.completed || 0}, blocked: ${counts.blocked || 0}, pending: ${counts.pending || 0}`;
   }
 }
+

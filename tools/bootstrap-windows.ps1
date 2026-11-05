@@ -2,7 +2,7 @@ param([switch]$SkipInstall, [switch]$CheckOnly)
 $ErrorActionPreference = 'Stop'
 $root = [System.IO.Path]::GetFullPath((Join-Path $PSScriptRoot '..'))
 $cache = Join-Path $root '.cache\bootstrap'
-$nodeName = 'node-v24.21.0-win-x64'
+$nodeName = 'node-v24.22.2-win-x64'
 $nodeDir = Join-Path $root $nodeName
 $llamaDir = Join-Path $root 'blackhole\resources\llama.cpp'
 
@@ -25,7 +25,7 @@ if (-not $CheckOnly) {
     New-Item -ItemType Directory -Path $cache -Force | Out-Null
     if (-not (Test-Path -LiteralPath (Join-Path $nodeDir 'node.exe'))) {
         $name = "$nodeName.zip"
-        $base = 'https://nodejs.org/dist/v24.21.0'
+        $base = 'https://nodejs.org/dist/v24.22.2'
         $sums = (Invoke-WebRequest -Uri "$base/SHASUMS256.txt" -UseBasicParsing).Content
         $line = ($sums -split "`n" | Where-Object { $_ -match "^[a-fA-F0-9]{64}\s+$([regex]::Escape($name))\s*$" })
         if (@($line).Count -ne 1) { throw 'Missing unique official Node checksum.' }
@@ -48,7 +48,7 @@ foreach ($required in @($node, $npm, (Join-Path $llamaDir 'llama-server.exe'))) 
     if (-not (Test-Path -LiteralPath $required -PathType Leaf)) { throw "Missing runtime: $required" }
 }
 $version = & $node --version
-if ($LASTEXITCODE -ne 0 -or $version -ne 'v24.21.0') { throw "Unexpected Node version: $version" }
+if ($LASTEXITCODE -ne 0 -or $version -ne 'v24.22.2') { throw "Unexpected Node version: $version" }
 $env:Path = $nodeDir + ';' + $env:Path
 if (-not $SkipInstall -and -not $CheckOnly) {
     foreach ($project in @('blackhole', 'blackhole\frontend', 'vscode-blackhole')) {

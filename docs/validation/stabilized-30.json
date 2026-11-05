@@ -1,0 +1,32 @@
+{
+  "schemaVersion": 1,
+  "build": "go-stabilized-30",
+  "historical": true,
+  "sourceHash": "91c1370fcddad03e74f60480475e3a49f04da6321127fe181f7baa44f1b6971c",
+  "packageHash": "08de5a0f5504a9a7fdcf5436a7408bd1cbf500861021d8f78623609373ee0100",
+  "scope": "Historical pinned Axios/Commander/ms seeded-fault run; not build31 and not a full upstream test certification.",
+  "naturalGcHour": {
+    "elapsedMs": 3602576,
+    "attempts": 553,
+    "passed": 553,
+    "normalCompletions": 552,
+    "intentionalCancellation": 1,
+    "edits": 144,
+    "observations": 407,
+    "freshReadAndQuote": 407,
+    "loopGuards": 0,
+    "strongCacheMaximum": 4,
+    "evictions": 142,
+    "rssMainAfterRoundMaximumMiB": 671.3,
+    "rssMainAfterRoundLastMiB": 378.9
+  },
+  "retentionControl": {
+    "workspaces": 80,
+    "baselineRetainedEngines": 80,
+    "fixedRetainedEngines": 4,
+    "baselinePostGcHeapMiB": 74,
+    "fixedPostGcHeapMiB": 17,
+    "scope": "Explicit GC control; not a total-memory quota or leak-free proof."
+  },
+  "noRawConversationsOrPrivatePathsIncluded": true
+}
